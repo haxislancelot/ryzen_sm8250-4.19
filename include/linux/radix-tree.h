@@ -230,6 +230,13 @@ static inline int radix_tree_exception(void *arg)
 
 int radix_tree_insert(struct radix_tree_root *, unsigned long index,
 			void *);
+int __radix_tree_insert(struct radix_tree_root *, unsigned long index,
+			unsigned order, void *);
+static inline int radix_tree_insert(struct radix_tree_root *root,
+			unsigned long index, void *entry)
+{
+	return __radix_tree_insert(root, index, 0, entry);
+}
 void *__radix_tree_lookup(const struct radix_tree_root *, unsigned long index,
 			  struct radix_tree_node **nodep, void __rcu ***slotp);
 void *radix_tree_lookup(const struct radix_tree_root *, unsigned long);
