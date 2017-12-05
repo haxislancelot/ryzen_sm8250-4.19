@@ -3108,6 +3108,7 @@ static int f2fs_write_cache_pages(struct address_space *mapping,
 	int nwritten = 0;
 	int submitted = 0;
 	int i;
+	xa_mark_t tag;
 
 	if (get_dirty_pages(mapping->host) <=
 				SM_I(F2FS_M_SB(mapping))->min_hot_blocks)
