@@ -425,12 +425,15 @@ static int _of_add_opp_table_v2(struct device *dev, struct opp_table *opp_table)
 	struct dev_pm_opp *opp;
 
 	/* OPP table is already initialized for the device */
+	mutex_lock(&opp_table->lock);
 	if (opp_table->parsed_static_opps) {
-		kref_get(&opp_table->list_kref);
+		opp_table->parsed_static_opps++;
+		mutex_unlock(&opp_table->lock);
 		return 0;
 	}
 
-	kref_init(&opp_table->list_kref);
+	opp_table->parsed_static_opps = 1;
+	mutex_unlock(&opp_table->lock);
 
 	/* We have opp-table node now, iterate over it and add OPPs */
 	for_each_available_child_of_node(opp_table->np, np) {
@@ -440,7 +443,7 @@ static int _of_add_opp_table_v2(struct device *dev, struct opp_table *opp_table)
 			dev_err(dev, "%s: Failed to add OPP, %d\n", __func__,
 				ret);
 			of_node_put(np);
-			goto put_list_kref;
+			goto remove_static_opp;
 		} else if (opp) {
 			count++;
 		}
@@ -450,7 +453,7 @@ static int _of_add_opp_table_v2(struct device *dev, struct opp_table *opp_table)
 	if (!count) {
 		dev_err(dev, "%s: no supported OPPs", __func__);
 		ret = -ENOENT;
-		goto put_list_kref;
+		goto remove_static_opp;
 	}
 
 	list_for_each_entry(opp, &opp_table->opp_list, node)
@@ -461,18 +464,16 @@ static int _of_add_opp_table_v2(struct device *dev, struct opp_table *opp_table)
 		dev_err(dev, "Not all nodes have performance state set (%d: %d)\n",
 			count, pstate_count);
 		ret = -ENOENT;
-		goto put_list_kref;
+		goto remove_static_opp;
 	}
 
 	if (pstate_count)
 		opp_table->genpd_performance_state = true;
 
-	opp_table->parsed_static_opps = true;
-
 	return 0;
 
-put_list_kref:
-	_put_opp_list_kref(opp_table);
+remove_static_opp:
+	_opp_remove_all_static(opp_table);
 
 	return ret;
 }
@@ -511,7 +512,7 @@ static int _of_add_opp_table_v1(struct device *dev, struct opp_table *opp_table)
 		if (ret) {
 			dev_err(dev, "%s: Failed to add OPP %ld (%d)\n",
 				__func__, freq, ret);
-			_put_opp_list_kref(opp_table);
+			_opp_remove_all_static(opp_table);
 			return ret;
 		}
 		nr -= 2;
