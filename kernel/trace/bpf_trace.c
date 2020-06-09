@@ -176,7 +176,7 @@ static __always_inline int
 bpf_probe_read_user_str_common(void *dst, u32 size,
 			       const void __user *unsafe_ptr)
 {
-	int ret;
+	int ret = strncpy_from_user_nofault(dst, unsafe_ptr, size);
 
 	/*
 	 * NB: We rely on strncpy_from_user() not copying junk past the NUL
@@ -188,7 +188,7 @@ bpf_probe_read_user_str_common(void *dst, u32 size,
 	 * and keys a hash map with it, then semantically identical strings can
 	 * occupy multiple entries in the map.
 	 */
-	ret = strncpy_from_user_nofault(dst, unsafe_ptr, size);
+
 	if (unlikely(ret < 0))
 		memset(dst, 0, size);
 	return ret;
