@@ -27,6 +27,7 @@
 #ifdef CONFIG_SEC_PM
 #include <linux/wakeup_reason.h>
 #endif
+#include <linux/pm_wakeup.h>
 
 #ifndef CONFIG_SUSPEND
 suspend_state_t pm_suspend_target_state;
@@ -82,6 +83,9 @@ static struct wakeup_source deleted_ws = {
 };
 
 static DEFINE_IDA(wakeup_ida);
+#define WORK_TIMEOUT	(60*1000)
+static void ws_printk(struct work_struct *work);
+static DECLARE_DELAYED_WORK(ws_printk_work, ws_printk);
 
 /**
  * wakeup_source_create - Create a struct wakeup_source object.
@@ -881,6 +885,24 @@ void pm_print_active_wakeup_sources(void)
 }
 EXPORT_SYMBOL_GPL(pm_print_active_wakeup_sources);
 
+static void ws_printk(struct work_struct *work)
+{
+		pm_print_active_wakeup_sources();
+		queue_delayed_work(system_freezable_wq,
+		&ws_printk_work, msecs_to_jiffies(WORK_TIMEOUT));
+}
+
+void pm_print_active_wakeup_sources_queue(bool on)
+{
+	if (on) {
+		queue_delayed_work(system_freezable_wq, &ws_printk_work,
+		msecs_to_jiffies(WORK_TIMEOUT));
+	} else {
+		cancel_delayed_work(&ws_printk_work);
+	}
+}
+EXPORT_SYMBOL_GPL(pm_print_active_wakeup_sources_queue);
+
 /**
  * pm_wakeup_pending - Check if power transition in progress should be aborted.
  *
@@ -937,14 +959,7 @@ void pm_wakeup_clear(bool reset)
 void pm_system_irq_wakeup(unsigned int irq_number)
 {
 	if (pm_wakeup_irq == 0) {
-		struct irq_desc *desc;
 		const char *name = "null";
-
-		desc = irq_to_desc(irq_number);
-		if (desc == NULL)
-			name = "stray irq";
-		else if (desc->action && desc->action->name)
-			name = desc->action->name;
 
 		log_irq_wakeup_reason(irq_number);
 		pr_warn("%s: %d triggered %s\n", __func__, irq_number, name);
