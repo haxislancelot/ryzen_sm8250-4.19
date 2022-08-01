@@ -3032,6 +3032,30 @@ LZ4_decompress_generic(const char *const src, char *const dst, int srcSize,
 
 /*===== Instantiate the API decoding functions. =====*/
 
+LZ4_FORCE_INLINE int
+LZ4_decompress_generic(const char *const src, char *const dst, int srcSize,
+		       /*
+			* If endOnInput == endOnInputSize,
+			* this value is `dstCapacity`
+			*/
+		       int outputSize,
+		       /* full, partial */
+		       earlyEnd_directive partialDecoding,
+		       /* noDict, withPrefix64k, usingExtDict */
+		       dict_directive dict,
+		       /* always <= dst, == dst when no prefix */
+		       const BYTE *const lowPrefix,
+		       /* only if dict == usingExtDict */
+		       const BYTE *const dictStart,
+		       /* note : = 0 if noDict */
+		       const size_t dictSize)
+{
+	return __LZ4_decompress_generic(src, dst, (const BYTE *)src,
+					(BYTE *)dst, srcSize, outputSize,
+					partialDecoding, dict, lowPrefix,
+					dictStart, dictSize);
+}
+
 LZ4_FORCE_O2
 int LZ4_decompress_safe(const char *source, char *dest, int compressedSize,
 			int maxDecompressedSize)
@@ -3290,6 +3314,58 @@ int LZ4_decompress_safe_continue(LZ4_streamDecode_t *LZ4_streamDecode,
 	}
 
 	return result;
+}
+
+LZ4_FORCE_O2 ssize_t LZ4_arm64_decompress_safe_partial(const void *source,
+						       void *dest,
+						       size_t inputSize,
+						       size_t outputSize,
+						       bool dip)
+{
+	uint8_t *dstPtr = dest;
+	const uint8_t *srcPtr = source;
+	ssize_t ret;
+
+#ifdef __ARCH_HAS_LZ4_ACCELERATOR
+	/* Go fast if we can, keeping away from the end of buffers */
+	if (outputSize > LZ4_FAST_MARGIN && inputSize > LZ4_FAST_MARGIN &&
+	    lz4_decompress_accel_enable()) {
+		ret = lz4_decompress_asm(
+			&dstPtr, dest, dest + outputSize - LZ4_FAST_MARGIN,
+			&srcPtr, source + inputSize - LZ4_FAST_MARGIN, dip);
+		if (ret)
+			return -EIO;
+	}
+#endif
+	/* Finish in safe */
+	return __LZ4_decompress_generic(source, dest, srcPtr, dstPtr, inputSize,
+					outputSize, partial_decode, noDict,
+					(BYTE *)dest, NULL, 0);
+}
+
+LZ4_FORCE_O2 ssize_t LZ4_arm64_decompress_safe(const void *source, void *dest,
+					       size_t inputSize,
+					       size_t outputSize, bool dip)
+{
+	uint8_t *dstPtr = dest;
+	const uint8_t *srcPtr = source;
+	ssize_t ret;
+
+#ifdef __ARCH_HAS_LZ4_ACCELERATOR
+	/* Go fast if we can, keeping away from the end of buffers */
+	if (outputSize > LZ4_FAST_MARGIN && inputSize > LZ4_FAST_MARGIN &&
+	    lz4_decompress_accel_enable()) {
+		ret = lz4_decompress_asm(
+			&dstPtr, dest, dest + outputSize - LZ4_FAST_MARGIN,
+			&srcPtr, source + inputSize - LZ4_FAST_MARGIN, dip);
+		if (ret)
+			return -EIO;
+	}
+#endif
+	/* Finish in safe */
+	return __LZ4_decompress_generic(source, dest, srcPtr, dstPtr, inputSize,
+					outputSize, decode_full_block, noDict,
+					(BYTE *)dest, NULL, 0);
 }
 
 LZ4_FORCE_O2 int
