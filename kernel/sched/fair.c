@@ -118,6 +118,22 @@ int __weak arch_asym_cpu_priority(int cpu)
 {
 	return -arch_scale_cpu_capacity(cpu);
 }
+
+/*
+ * The margin used when comparing CPU capacities.
+ * is 'cap1' noticeably greater than 'cap2'
+ *
+ * (default: ~5%)
+ */
+#define capacity_greater(cap1, cap2) ((cap1) * 1024 > (cap2) * 1078)
+
+/*
+ * The margin used when comparing utilization with CPU capacity.
+ *
+ * (default: ~20%)
+ */
+#define fits_capacity(cap, max)	((cap) * 1280 < (max) * 1024)
+
 #endif
 
 #ifdef CONFIG_CFS_BANDWIDTH
@@ -134,13 +150,6 @@ int __weak arch_asym_cpu_priority(int cpu)
 unsigned int sysctl_sched_cfs_bandwidth_slice		= 5000UL;
 #endif
 
-/*
- * The margin used when comparing utilization with CPU capacity:
- * util * margin < capacity * 1024
- *
- * (default: ~20%)
- */
-unsigned int capacity_margin				= 1280;
 
 unsigned int sched_capacity_margin_up[NR_CPUS] = { [0 ... NR_CPUS-1] = 1078 }; /* ~5% margin */
 unsigned int sched_capacity_margin_down[NR_CPUS] = { [0 ... NR_CPUS-1] = 1205 }; /* ~15% margin */
@@ -4285,22 +4294,11 @@ bias_to_this_cpu(struct task_struct *p, int cpu, int start_cpu)
 	return base_test && start_cap_test;
 }
 
-static inline bool task_fits_capacity(struct task_struct *p,
-					long capacity,
-					int cpu)
+static inline int task_fits_capacity(struct task_struct *p, long capacity)
 {
-	unsigned int margin;
-
-	/*
-	 * Derive upmigration/downmigrate margin wrt the src/dest CPU.
-	 */
-	if (capacity_orig_of(task_cpu(p)) > capacity_orig_of(cpu))
-		margin = sched_capacity_margin_down[cpu];
-	else
-		margin = sched_capacity_margin_up[task_cpu(p)];
-
-	return capacity * 1024 > uclamp_task_util(p) * margin;
+	return fits_capacity(uclamp_task_util(p), capacity);
 }
+#endif
 
 static inline bool task_fits_max(struct task_struct *p, int cpu)
 {
@@ -5687,7 +5685,7 @@ bool __cpu_overutilized(int cpu, int delta)
 
 bool cpu_overutilized(int cpu)
 {
-	return __cpu_overutilized(cpu, 0);
+	return !fits_capacity(cpu_util(cpu), capacity_of(cpu));
 }
 
 static bool sd_overutilized(struct sched_domain *sd)
@@ -7785,8 +7783,7 @@ static void select_cpu_candidates(struct sched_domain *sd, cpumask_t *cpus,
 			 */
 			util = uclamp_rq_util_with(cpu_rq(cpu), util, p);
 
-			if (cpu_cap * 1024 <
-					util * sched_capacity_margin_up[cpu])
+			if (!fits_capacity(util, cpu_cap))
 				continue;
 
 			/*
