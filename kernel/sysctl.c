@@ -391,7 +391,7 @@ static int bpf_stats_handler(struct ctl_table *table, int write,
 		.maxlen = sizeof(val),
 		.mode   = table->mode,
 		.extra1 = SYSCTL_ZERO,
-		.extra2 = &one,
+		.extra2 = SYSCTL_ONE,
 	};
 
 	if (write && !capable(CAP_SYS_ADMIN))
@@ -1836,7 +1836,7 @@ static struct ctl_table vm_table[] = {
 		.mode		= 0666,
 		.proc_handler	= proc_dointvec_minmax,
 		.extra1		= SYSCTL_ZERO,
-		.extra2		= &one,
+		.extra2		= SYSCTL_ONE,
 	},
 #endif
 #ifdef CONFIG_HUGETLB_PAGE
@@ -1946,7 +1946,7 @@ static struct ctl_table vm_table[] = {
 		.maxlen		= sizeof(kswapd_threads),
 		.mode		= 0644,
 		.proc_handler	= kswapd_threads_sysctl_handler,
-		.extra1		= &one,
+		.extra1		= SYSCTL_ONE,
 		.extra2		= &max_kswapd_threads,
 	},
 	{
@@ -3859,7 +3859,7 @@ int proc_do_static_key(struct ctl_table *table, int write,
 		.maxlen = sizeof(val),
 		.mode   = table->mode,
 		.extra1 = SYSCTL_ZERO,
-		.extra2 = &one,
+		.extra2 = SYSCTL_ONE,
 	};
 
 	if (write && !capable(CAP_SYS_ADMIN))
