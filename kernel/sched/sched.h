@@ -3033,6 +3033,10 @@ static inline bool task_sched_boost(struct task_struct *p)
 
 static inline void update_cgroup_boost_settings(void) { }
 static inline void restore_cgroup_boost_settings(void) { }
+static inline int sync_cgroup_colocation(struct task_struct *p, bool insert)
+{
+        return 0;
+}
 #endif
 
 extern int alloc_related_thread_groups(void);
