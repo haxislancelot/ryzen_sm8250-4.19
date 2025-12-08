@@ -697,9 +697,22 @@ KBUILD_CFLAGS	+= $(call cc-disable-warning, address-of-packed-member)
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS   += -Os
+KBUILD_LDFLAGS  += --strip-debug
 else
-KBUILD_CFLAGS   += -O2
+KBUILD_CFLAGS   += -O3
+KBUILD_AFLAGS   += -O3
+KBUILD_LDFLAGS  += -O3 --strip-debug
 endif
+
+# Compiler optimizations
+KBUILD_CFLAGS   += -fno-trapping-math -fno-math-errno -ffp-contract=fast
+
+# specific cpu optimizations
+KBUILD_CFLAGS   += -mcpu=cortex-a55+crypto+crc+dotprod+rcpc
+KBUILD_CFLAGS   += -march=armv8.2-a+lse+crypto+dotprod
+
+KBUILD_AFLAGS   += -mcpu=cortex-a55+crypto+crc+dotprod+rcpc
+KBUILD_AFLAGS   +=  -march=armv8.2-a+lse+crypto+dotprod
 
 ifdef CONFIG_CC_WERROR
 KBUILD_CFLAGS  += -Werror
