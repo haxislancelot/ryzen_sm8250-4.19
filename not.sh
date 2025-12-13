@@ -57,6 +57,6 @@ gitsha=$(git rev-parse --short HEAD)
 cd "$ANYKERNEL_DIR" || exit 1
 rm -f *.zip
 
-zip -r9 "not-${KERNEL_NAME}-$gitsha+r8q.zip" .
+zip -r9 "not-${KERNEL_NAME}-eff-$gitsha+r8q.zip" .
 
 echo "The bomb has been planted."
