@@ -539,6 +539,16 @@ else
 CLANG_FLAGS	+= --target=$(notdir $(CROSS_COMPILE:%-=%))
 endif # CROSS_COMPILE
 
+ifeq ($(cc-name),clang)
+
+# Enable hot cold split optimization
+KBUILD_CFLAGS	+= -mllvm -hot-cold-split=true
+# Enable MLGO optimizations for register allocation
+KBUILD_CFLAGS	+= -mllvm -regalloc-enable-advisor=release
+KBUILD_LDFLAGS	+= -mllvm -regalloc-enable-advisor=release
+KBUILD_LDFLAGS	+= -mllvm -enable-ml-inliner=release
+endif
+
 ifeq ($(LLVM_IAS),0)
 CLANG_FLAGS	+= -no-integrated-as
 GCC_TOOLCHAIN_DIR := $(dir $(shell which $(CROSS_COMPILE)elfedit))
