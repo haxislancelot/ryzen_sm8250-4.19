@@ -1,6 +1,5 @@
 #!/bin/bash
 LLVM_PATH="/home/skye/toolchains/neutron-clang/bin/"
-LLVM_PATH="/home/skye/toolchains/neutron-clang/bin/"
 
 KERNEL_NAME="Aviva"
 
@@ -9,7 +8,8 @@ HOST_BUILD_ENV="ARCH=arm64 \
                 CROSS_COMPILE=${LLVM_PATH}aarch64-linux-gnu- \
                 LLVM=1 \
                 LLVM_IAS=1 \
-                PATH=$LLVM_PATH:$LLVM_PATH:$PATH"
+                PATH=$LLVM_PATH:$PATH \
+                -j$(nproc --all)"
 
 KERNEL_MAKE_ENV="DTC_EXT=$(pwd)/tools/dtc CONFIG_BUILD_ARM64_DT_OVERLAY=y"
 
