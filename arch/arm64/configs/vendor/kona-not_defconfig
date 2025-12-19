@@ -1,4 +1,4 @@
-CONFIG_LOCALVERSION="-{not: Aviva}"
+CONFIG_LOCALVERSION="-{not: Two Faced}"
 # CONFIG_AUDIT is not set
 CONFIG_NO_HZ=y
 CONFIG_HZ_100=y
