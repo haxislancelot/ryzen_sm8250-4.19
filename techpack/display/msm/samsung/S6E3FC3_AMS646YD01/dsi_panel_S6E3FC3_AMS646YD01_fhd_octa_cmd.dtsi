@@ -1441,7 +1441,7 @@
 				qcom,mdss-dsc-encoders = <2>;
 				qcom,mdss-dsc-slice-height = <40>;
 				qcom,mdss-dsc-slice-width = <540>;
-				qcom,mdss-dsc-slice-per-pkt = <1>;
+				qcom,mdss-dsc-slice-per-pkt = <2>;
 				qcom,mdss-dsc-bit-per-component = <8>;
 				qcom,mdss-pps-delay-ms = <0>;
 				qcom,mdss-dsc-bit-per-pixel = <8>;
@@ -1564,7 +1564,7 @@
 				qcom,mdss-dsc-encoders = <2>;
 				qcom,mdss-dsc-slice-height = <40>;
 				qcom,mdss-dsc-slice-width = <540>;
-				qcom,mdss-dsc-slice-per-pkt = <1>;
+				qcom,mdss-dsc-slice-per-pkt = <2>;
 				qcom,mdss-dsc-bit-per-component = <8>;
 				qcom,mdss-pps-delay-ms = <0>;
 				qcom,mdss-dsc-bit-per-pixel = <8>;
@@ -1687,7 +1687,7 @@
 				qcom,mdss-dsc-encoders = <2>;
 				qcom,mdss-dsc-slice-height = <40>;
 				qcom,mdss-dsc-slice-width = <540>;
-				qcom,mdss-dsc-slice-per-pkt = <1>;
+				qcom,mdss-dsc-slice-per-pkt = <2>;
 				qcom,mdss-dsc-bit-per-component = <8>;
 				qcom,mdss-pps-delay-ms = <0>;
 				qcom,mdss-dsc-bit-per-pixel = <8>;
