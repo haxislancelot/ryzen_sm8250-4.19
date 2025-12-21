@@ -84,5 +84,4 @@ ui_print " • Patching dtbo unconditionally... • "
 dd if=$home/dtbo.img of=/dev/block/platform/soc/1d84000.ufshc/by-name/dtbo
 
 flash_boot;
-flash_dtbo;
 ## end boot install
