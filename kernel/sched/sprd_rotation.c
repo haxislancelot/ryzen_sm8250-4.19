@@ -12,7 +12,6 @@ struct rotation_data {
 };
 
 #define ENABLE_DELAY_SEC	60
-#define BIG_TASK_NUM		4
 /* default enable rotation feature */
 static bool rotation_enable;
 /* default threshold value is 40ms */
@@ -31,7 +30,7 @@ static __read_mostly bool sched_ktime_suspended;
 
 
 /* core function */
-void check_for_task_rotation(struct rq *src_rq)
+void check_for_task_rotation(struct rq *src_rq, int cpu)
 {
 	int i, src_cpu = cpu_of(src_rq);
 	struct rq *dst_rq;
@@ -39,34 +38,50 @@ void check_for_task_rotation(struct rq *src_rq)
 	struct rotation_data *rd = NULL;
 	u64 wc, wait, max_wait = 0;
 	u64 run, max_run = 0;
-	int big_task = 0;
+	cpumask_t big_mask;
+	cpumask_t misfit_mask;
 
-	if (!rotation_enable)
+	if (unlikely(!rotation_enable))
+		return;
+	
+	cpumask_clear(&big_mask);
+	cpumask_clear(&misfit_mask);
+
+	for_each_cpu_not(i, &min_cap_cpu_mask) {
+		if (is_reserved(i))
+			continue;
+
+		cpumask_set_cpu(i, &big_mask);
+
+		/* Check if upmigration is possible */
+		if (!cpu_overutilized(i))
+			return;
+	}
+
+	if (cpumask_empty(&big_mask))
 		return;
 
-	if (!cpumask_test_cpu(src_cpu, &min_cap_cpu_mask))
-		return;
+	for_each_cpu(i, &min_cap_cpu_mask) {
+		struct task_struct *curr_task;
 
-	for_each_possible_cpu(i) {
-		struct rq *rq = cpu_rq(i);
-		struct task_struct *curr_task = rq->curr;
+		if (is_reserved(i))
+			continue;
+
+		curr_task = cpu_rq(i)->curr;
 
 		if (curr_task->sched_class == &fair_sched_class &&
-		    !fits_capacity(task_util_est(curr_task), capacity_of(i)))
-			big_task += 1;
+			capacity_of(i) * 1024 < task_util_est(curr_task) * sched_capacity_margin_up[cpu]) {
+			cpumask_set_cpu(i, &misfit_mask);
+		}
 	}
-	if (big_task < BIG_TASK_NUM)
+	
+	if (cpumask_empty(&misfit_mask))
 		return;
 
 	wc = sched_ktime_clock();
-	for_each_cpu(i, &min_cap_cpu_mask) {
+	for_each_cpu(i, &misfit_mask) {
 		struct rq *rq = cpu_rq(i);
 		struct task_struct *curr_task = rq->curr;
-
-		if (!rq->misfit_task_load || is_reserved(i) ||
-		    curr_task->sched_class != &fair_sched_class ||
-		    fits_capacity(task_util_est(curr_task), capacity_of(i)))
-			continue;
 
 		wait = wc - curr_task->last_enqueue_ts;
 		if (wait > max_wait) {
@@ -78,7 +93,7 @@ void check_for_task_rotation(struct rq *src_rq)
 	if (deserved_cpu != src_cpu)
 		return;
 
-	for_each_cpu_not(i, &min_cap_cpu_mask) {
+	for_each_cpu(i, &big_mask) {
 		struct rq *rq = cpu_rq(i);
 
 		if (is_reserved(i))
@@ -107,7 +122,7 @@ void check_for_task_rotation(struct rq *src_rq)
 	dst_rq = cpu_rq(dst_cpu);
 
 	double_rq_lock(src_rq, dst_rq);
-	if (dst_rq->curr->sched_class == &fair_sched_class) {
+	if (!src_rq->active_balance && !dst_rq->active_balance) {
 
 		if (!cpumask_test_cpu(dst_cpu, &src_rq->curr->cpus_allowed) ||
 		    !cpumask_test_cpu(src_cpu, &dst_rq->curr->cpus_allowed)) {
