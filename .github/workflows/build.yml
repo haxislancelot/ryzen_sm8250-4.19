@@ -44,19 +44,6 @@ jobs:
           minutes=$((duration / 60))
           seconds=$((duration % 60))
           echo "BUILD_DURATION=${minutes}m ${seconds}s" >> $GITHUB_ENV
-          
-      - name: Announce new build
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          message: |
-            –––––––––––––––––––––––––––––––––––––
-            | ⚙️ not_kernel CI build complete!       |
-            | 🌊 Version - :ELEMENT.                        |
-            –––––––––––––––––––––––––––––––––––––
-            |  ⏱️ Build time – ${{ env.BUILD_DURATION }}                     | 
-            –––––––––––––––––––––––––––––––––––––
 
       - name: Upload to Telegram
         run: |
