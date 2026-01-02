@@ -1,10 +1,12 @@
-name: not-kernel
+name: build not-kernel CI variant
 
 on:
-  workflow_dispatch:
+    push:
+       branches: [ "main" ]
+    workflow_dispatch:
 
 jobs:
-  build:
+  build-kernel:
     runs-on: ubuntu-latest
 
     env:
@@ -48,8 +50,10 @@ jobs:
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          document: not-*-r8q.zip
+          document: not-*.zip
           message: |
-            ⚙️ New not_kernel build available!
+            ⚙️ not_kernel CI build complete!
             📱 Device – Galaxy S20 FE (r8q)
-            ⏱ Build time – ${{ env.BUILD_DURATION }}
+             – Check changes on github!
+            ⏱️ Build time – ${{ env.BUILD_DURATION }}
+            📝 Kernel Version - 4.19.325-graphene-st11rc:ELEMENT.
