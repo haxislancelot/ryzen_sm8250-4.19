@@ -233,4 +233,3 @@ obj-$(CONFIG_GPS_BCM4753)	+= gps/
 obj-$(CONFIG_SPU_VERIFY) += spu_verify/
 
 obj-$(CONFIG_KSU) += kernelsu/
-obj-y				+= oplus/
