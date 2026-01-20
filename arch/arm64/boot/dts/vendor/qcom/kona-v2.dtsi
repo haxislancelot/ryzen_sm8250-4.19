@@ -48,7 +48,7 @@
 		zone@4 {
 			reg = <4>;
 			qcom,silver-khz = <1708800>;
-			qcom,gold-khz = <2054400>;
+			qcom,gold-khz = <2150400>;
 			qcom,prime-khz = <2361600>;
 			qcom,trip-deg = <57500>;
 		};
@@ -57,7 +57,7 @@
 			reg = <5>;
 			qcom,silver-khz = <1708800>;
 			qcom,gold-khz = <2054400>;
-			qcom,prime-khz = <2073600>;
+			qcom,prime-khz = <2361600>;
 			qcom,trip-deg = <60000>;
 		};
 
