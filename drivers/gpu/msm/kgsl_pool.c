@@ -357,8 +357,6 @@ int kgsl_pool_alloc_page(int *page_size, struct page **pages,
 			} else
 				return -ENOMEM;
 		}
-
-		kgsl_zero_page(page, order);
 	}
 
 done:
