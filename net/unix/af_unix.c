@@ -1154,7 +1154,7 @@ static int unix_dgram_connect(struct socket *sock, struct sockaddr *addr,
 			/* Block libperfmgr from writing to logd (i.e., logcat) */
 			if (task_is_powerhal(current) &&
 				!strncmp(sunaddr->sun_path, "/dev/socket/logdw", alen))
-				return -EINVAL;
+				return -EACCES;
 		} else {
 			/* Block everyone from writing to logd (i know, i know :( this is wrong) */
 			if (!strncmp(sunaddr->sun_path, "/dev/socket/logdw", alen))
