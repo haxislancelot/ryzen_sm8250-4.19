@@ -142,7 +142,11 @@
 })
 #define input_raw_info(mode, dev, fmt, ...) input_info(mode, dev, fmt, ## __VA_ARGS__)
 #define input_log_fix()	{}
+#ifdef CONFIG_TOUCHSCREEN_DUAL_FOLDABLE
+#define input_raw_data_clear(mode) {}
+#else
 #define input_raw_data_clear() {}
+#endif
 #endif
 
 /*

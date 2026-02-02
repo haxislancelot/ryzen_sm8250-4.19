@@ -1416,14 +1416,13 @@ static ssize_t fts_tsp_fail_hist_read(struct file *file, char __user *buf,
 }
 
 static const struct proc_ops tsp_cmoffset_all_file_ops = {
-    .proc_read  = fts_tsp_cmoffset_read,
-    .proc_lseek = generic_file_llseek,
+	.proc_read  = fts_tsp_cmoffset_read,
+	.proc_lseek = generic_file_llseek,
 };
 
-static const struct file_operations tsp_fail_hist_all_file_ops = {
-	.owner = THIS_MODULE,
-	.read = fts_tsp_fail_hist_read,
-	.llseek = generic_file_llseek,
+static const struct proc_ops tsp_fail_hist_all_file_ops = {
+	.proc_read = fts_tsp_fail_hist_read,
+	.proc_lseek = generic_file_llseek,
 };
 
 static void fts_init_proc(struct fts_ts_info *info)
