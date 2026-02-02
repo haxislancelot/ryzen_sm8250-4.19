@@ -68,63 +68,59 @@ static void sec_virtual_tsp_dump(void)
 }
 #endif
 
-static int sec_virtual_tsp_read_sysfs(struct sec_cmd_data *sec, const char *path, char *buf, int len)
+static int sec_virtual_tsp_read_sysfs(struct sec_cmd_data *sec,
+				      const char *path, char *buf, int len)
 {
-	int ret = 0;
-	mm_segment_t old_fs;
+	int ret;
 	struct file *sysfs;
-
-	old_fs = get_fs();
-	set_fs(KERNEL_DS);
+	loff_t pos = 0;
 
 	sysfs = filp_open(path, O_RDONLY, 0444);
 	if (IS_ERR(sysfs)) {
 		ret = PTR_ERR(sysfs);
-		input_err(true, sec->fac_dev, "%s: %s open fail, %d\n", __func__, path, ret);
-		set_fs(old_fs);
+		input_err(true, sec->fac_dev,
+			  "%s: %s open fail, %d\n", __func__, path, ret);
 		return ret;
 	}
 
-	ret = sysfs->f_op->read(sysfs, buf, len, &sysfs->f_pos);
+	ret = kernel_read(sysfs, buf, len, &pos);
 	if (ret < 0) {
-		input_err(true, sec->fac_dev, "%s: failed to read, len:%d, ret:%d\n", __func__, len, ret);
+		input_err(true, sec->fac_dev,
+			  "%s: failed to read, len:%d, ret:%d\n",
+			  __func__, len, ret);
 		ret = -EIO;
 	}
 
-	filp_close(sysfs, current->files);
-	set_fs(old_fs);
-
+	filp_close(sysfs, NULL);
 	return ret;
 }
 
-static int sec_virtual_tsp_write_sysfs(struct sec_cmd_data *sec, const char *path, const char *cmd)
+static int sec_virtual_tsp_write_sysfs(struct sec_cmd_data *sec,
+				       const char *path, const char *cmd)
 {
-	int ret = 0;
-	mm_segment_t old_fs;
+	int ret;
 	struct file *sysfs;
+	loff_t pos = 0;
 	int len;
-
-	old_fs = get_fs();
-	set_fs(KERNEL_DS);
 
 	sysfs = filp_open(path, O_WRONLY, 0220);
 	if (IS_ERR(sysfs)) {
 		ret = PTR_ERR(sysfs);
-		input_err(true, sec->fac_dev, "%s: %s open fail, %d\n", __func__, path, ret);
-		set_fs(old_fs);
+		input_err(true, sec->fac_dev,
+			  "%s: %s open fail, %d\n", __func__, path, ret);
 		return ret;
 	}
 
 	len = strlen(cmd);
-	ret = sysfs->f_op->write(sysfs, cmd, len, &sysfs->f_pos);
+	ret = kernel_write(sysfs, cmd, len, &pos);
 	if (ret != len) {
-		input_err(true, sec->fac_dev, "%s: failed to write, len:%d, ret:%d\n", __func__, len, ret);
+		input_err(true, sec->fac_dev,
+			  "%s: failed to write, len:%d, ret:%d\n",
+			  __func__, len, ret);
 		ret = -EIO;
 	}
 
-	filp_close(sysfs, current->files);
-	set_fs(old_fs);
-
+	filp_close(sysfs, NULL);
 	return ret;
 }
 
