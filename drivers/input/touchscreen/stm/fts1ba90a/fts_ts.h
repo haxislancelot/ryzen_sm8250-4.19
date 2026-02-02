@@ -30,6 +30,7 @@
 #include <linux/regulator/consumer.h>
 #include <linux/of_gpio.h>
 #include <linux/input/mt.h>
+#include <linux/proc_fs.h>
 #ifdef CONFIG_SEC_SYSFS
 #include <linux/sec_sysfs.h>
 #endif
