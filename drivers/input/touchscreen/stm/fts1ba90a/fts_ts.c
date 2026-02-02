@@ -1226,20 +1226,17 @@ static ssize_t fts_tsp_cmoffset_main_read(struct file *file, char __user *buf,
 	return fts_tsp_cmoffset_read(file, buf, len, offset, OFFSET_FW_MAIN);
 }
 
-static const struct file_operations tsp_cmoffset_sdc_file_ops = {
-	.owner = THIS_MODULE,
-	.read = fts_tsp_cmoffset_sdc_read,
-	.llseek = generic_file_llseek,
+static const struct proc_ops tsp_cmoffset_sdc_file_ops = {
+	.proc_read = fts_tsp_cmoffset_sdc_read,
+	.proc_lseek = generic_file_llseek,
 };
-static const struct file_operations tsp_cmoffset_sub_file_ops = {
-	.owner = THIS_MODULE,
-	.read = fts_tsp_cmoffset_sub_read,
-	.llseek = generic_file_llseek,
+static const struct proc_ops tsp_cmoffset_sub_file_ops = {
+	.proc_read = fts_tsp_cmoffset_sub_read,
+	.proc_lseek = generic_file_llseek,
 };
-static const struct file_operations tsp_cmoffset_main_file_ops = {
-	.owner = THIS_MODULE,
-	.read = fts_tsp_cmoffset_main_read,
-	.llseek = generic_file_llseek,
+static const struct proc_ops tsp_cmoffset_main_file_ops = {
+	.proc_read = fts_tsp_cmoffset_main_read,
+	.proc_lseek = generic_file_llseek,
 };
 
 static void fts_init_proc(struct fts_ts_info *info)
