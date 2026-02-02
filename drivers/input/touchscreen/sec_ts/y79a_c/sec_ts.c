@@ -850,7 +850,9 @@ static void sec_ts_sponge_dump_flush(struct sec_ts_data *ts, int dump_area)
 			snprintf(buff, sizeof(buff), "%03d: %04x%04x%04x%04x%04x\n",
 					i + (ts->sponge_dump_event * dump_area), 
 					edata[0], edata[1], edata[2], edata[3], edata[4]);
+#if 0
 			sec_tsp_sponge_log(buff);
+#endif
 		}
 	}
 
@@ -2087,16 +2089,14 @@ static ssize_t sec_ts_tsp_fail_hist_read(struct file *file, char __user *buf,
 	return sec_ts_tsp_fail_hist_all_read(file, buf, len, offset);
 }
 
-static const struct file_operations tsp_cmoffset_all_file_ops = {
-	.owner = THIS_MODULE,
-	.read = sec_ts_tsp_cmoffset_read,
-	.llseek = generic_file_llseek,
+static const struct proc_ops tsp_cmoffset_all_file_ops = {
+	.proc_read = sec_ts_tsp_cmoffset_read,
+	.proc_lseek = generic_file_llseek,
 };
 
-static const struct file_operations tsp_fail_hist_all_file_ops = {
-	.owner = THIS_MODULE,
-	.read = sec_ts_tsp_fail_hist_read,
-	.llseek = generic_file_llseek,
+static const struct proc_ops tsp_fail_hist_all_file_ops = {
+	.proc_read = sec_ts_tsp_fail_hist_read,
+	.proc_lseek = generic_file_llseek,
 };
 
 static void sec_ts_init_proc(struct sec_ts_data *ts)
