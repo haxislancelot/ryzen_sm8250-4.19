@@ -22,6 +22,7 @@
 #include <linux/workqueue.h>
 #include <linux/completion.h>
 #include <linux/wakelock.h>
+#include <linux/fb.h>
 
 #ifdef CONFIG_SAMSUNG_TUI
 #include "stui_inf.h"
