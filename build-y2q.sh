@@ -78,7 +78,7 @@ else
 fi
 
 rm -rf AnyKernel3
-echo "[*] Cloning AnyKernel3 for $DEVICE"
+echo "[*] Cloning AnyKernel3 for y2q"
 git clone -q -b "$AK3_BRANCH" "$AK3_REPO" AnyKernel3 || exit 1
 
 echo -e "Preparing zip...\n"
