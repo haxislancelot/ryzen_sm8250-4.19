@@ -780,33 +780,32 @@ void bluesleep_setup_uart_port(struct platform_device *uart_dev)
 	bluesleep_uart_dev = uart_dev;
 }
 
-static const struct file_operations proc_fops_btwake = {
-	.owner = THIS_MODULE,
-	.read = bluepower_read_proc_btwake,
-	.write = bluepower_write_proc_btwake,
+static const struct proc_ops proc_fops_btwake = {
+	.proc_read  = bluepower_read_proc_btwake,
+	.proc_write = bluepower_write_proc_btwake,
 };
-static const struct file_operations proc_fops_hostwake = {
-	.owner = THIS_MODULE,
-	.read = bluepower_read_proc_hostwake,
+
+static const struct proc_ops proc_fops_hostwake = {
+	.proc_read = bluepower_read_proc_hostwake,
 };
-static const struct file_operations proc_fops_proto = {
-	.owner = THIS_MODULE,
-	.read = bluesleep_read_proc_proto,
-	.write = bluesleep_write_proc_proto,
+
+static const struct proc_ops proc_fops_proto = {
+	.proc_read  = bluesleep_read_proc_proto,
+	.proc_write = bluesleep_write_proc_proto,
 };
-static const struct file_operations proc_fops_asleep = {
-	.owner = THIS_MODULE,
-	.read = bluesleep_read_proc_asleep,
+
+static const struct proc_ops proc_fops_asleep = {
+	.proc_read = bluesleep_read_proc_asleep,
 };
-static const struct file_operations proc_fops_lpm = {
-	.owner = THIS_MODULE,
-	.read = bluesleep_read_proc_lpm,
-	.write = bluesleep_write_proc_lpm,
+
+static const struct proc_ops proc_fops_lpm = {
+	.proc_read  = bluesleep_read_proc_lpm,
+	.proc_write = bluesleep_write_proc_lpm,
 };
-static const struct file_operations proc_fops_btwrite = {
-	.owner = THIS_MODULE,
-	.read = bluesleep_read_proc_btwrite,
-	.write = bluesleep_write_proc_btwrite,
+
+static const struct proc_ops proc_fops_btwrite = {
+	.proc_read  = bluesleep_read_proc_btwrite,
+	.proc_write = bluesleep_write_proc_btwrite,
 };
 
 void bluesleep_make_node(void)
