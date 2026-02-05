@@ -794,9 +794,6 @@ struct task_struct {
 #ifdef CONFIG_SMP
 	struct llist_node		wake_entry;
 	int				on_cpu;
-#ifdef CONFIG_SPRD_ROTATION_TASK
-	u64                             last_enqueue_ts;
-#endif
 #ifdef CONFIG_THREAD_INFO_IN_TASK
 	/* Current CPU: */
 	unsigned int			cpu;

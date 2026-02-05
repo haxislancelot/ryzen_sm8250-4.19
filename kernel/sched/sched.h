@@ -1517,7 +1517,7 @@ static inline void sched_domains_numa_masks_set(unsigned int cpu) { }
 static inline void sched_domains_numa_masks_clear(unsigned int cpu) { }
 #endif
 
-#if defined(CONFIG_NUMA_BALANCING) || defined(CONFIG_SPRD_ROTATION_TASK)
+#ifdef CONFIG_NUMA_BALANCING
 extern int migrate_swap(struct task_struct *p, struct task_struct *t,
 			int cpu, int scpu);
 #endif
@@ -2936,27 +2936,6 @@ enum sched_boost_policy {
 	SCHED_BOOST_ON_BIG,
 	SCHED_BOOST_ON_ALL,
 };
-
-#ifdef CONFIG_SPRD_ROTATION_TASK
-DECLARE_PER_CPU_SHARED_ALIGNED(bool, cpu_reserved);
-static inline bool is_reserved(int cpu)
-{
-	return per_cpu(cpu_reserved, cpu);
-}
-
-static inline void mark_reserved(int cpu)
-{
-	per_cpu(cpu_reserved, cpu) = true;
-}
-
-static inline void clear_reserved(int cpu)
-{
-	per_cpu(cpu_reserved, cpu) = false;
-}
-
-void check_for_task_rotation(struct rq *src_rq, int cpu);
-u64 sched_ktime_clock(void);
-#endif
 
 #ifdef CONFIG_SMP
 static inline unsigned long thermal_cap(int cpu)
