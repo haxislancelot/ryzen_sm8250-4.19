@@ -22,7 +22,6 @@
 #include "../drivers/audio_canvas_common.dtsi"
 #include "../drivers/displayport_c2q_r00.dtsi"
 #include "../drivers/nfc_c2q_r00.dtsi"
-#include "../drivers/kona-sec-canvasq-mst-r01.dtsi"
 #include "../drivers/kona-sec-c2q-display-r00.dtsi"
 #include "../drivers/input_c2q_common.dtsi"
 #include "../drivers/optics_c2q_r00.dtsi"

@@ -18,7 +18,6 @@
 #include "../drivers/eif_8250_common.dtsi"
 #include "../drivers/eif_f2q_common.dtsi"
 #include "../drivers/kona-sec-f2q-display-r00.dtsi"
-#include "../drivers/kona-sec-f2q-mst-r00.dtsi"
 #include "../drivers/nfc_f2q_r00.dtsi"
 #include "../drivers/kona-sec-f2q-sensor-r00.dtsi"
 #include "../drivers/uwb_f2q_r00.dtsi"

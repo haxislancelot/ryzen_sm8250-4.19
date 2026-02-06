@@ -21,7 +21,6 @@
 #include "../drivers/battery-rx-data-z3q-idt.dtsi"
 #include "../drivers/audio_picasso_common.dtsi"
 #include "../drivers/kona-sec-z3q-display-r00.dtsi"
-#include "../drivers/kona-sec-picassoq-common-mst-r04.dtsi"
 #include "../drivers/displayport_y2q_r04.dtsi"
 #include "../drivers/nfc_y2q_r04.dtsi"
 #include "../drivers/fingerprint-sensor_hubblez3_r00.dtsi"

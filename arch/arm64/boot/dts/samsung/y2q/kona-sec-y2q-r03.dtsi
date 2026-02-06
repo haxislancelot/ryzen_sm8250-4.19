@@ -13,7 +13,6 @@
 #include "kona-sec-y2q-r02.dtsi"
 #include "kona-sec-y2q-pinctrl-r03.dtsi"
 #include "kona-sec-picassoq-pm-r03.dtsi"
-#include "../drivers/kona-sec-picassoq-common-mst-r02.dtsi"
 #include "../drivers/input_y2q_common.dtsi"
 
 &soc {

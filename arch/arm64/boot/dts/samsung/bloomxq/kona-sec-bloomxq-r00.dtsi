@@ -17,7 +17,6 @@
 #include "../drivers/nfc_bloomxq_r00.dtsi"
 #include "../drivers/bluetooth_bloomxq_common.dtsi"
 #include "../drivers/kona-sec-bloomxq-sensor-r00.dtsi"
-#include "../drivers/kona-sec-bloomxq-mst-r00.dtsi"
 #include "../drivers/eif_bloomxq_common.dtsi"
 #include "../drivers/battery-data-bloomxq-common.dtsi"
 #include "../drivers/input_bloomxq_common.dtsi"

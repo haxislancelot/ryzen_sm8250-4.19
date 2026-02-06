@@ -20,7 +20,6 @@
 #include "../drivers/battery-data-x1q-common.dtsi"
 #include "../drivers/audio_picasso_common.dtsi"
 #include "../drivers/kona-sec-x1q-display-r00.dtsi"
-#include "../drivers/kona-sec-picassoq-common-mst-r04.dtsi"
 #include "../drivers/displayport_y2q_r04.dtsi"
 #include "../drivers/nfc_y2q_r04.dtsi"
 #include "../drivers/fingerprint-sensor_hubblex1_r00.dtsi"

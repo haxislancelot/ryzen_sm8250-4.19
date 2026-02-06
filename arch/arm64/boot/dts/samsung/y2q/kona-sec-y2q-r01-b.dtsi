@@ -12,7 +12,6 @@
 
 #include "kona-sec-y2q-r00-b.dtsi"
 #include "kona-sec-y2q-pinctrl-r01-b.dtsi"
-#include "../drivers/kona-sec-picassoq-common-mst-r01.dtsi"
 
 &wlan {
 	wlan-en-gpio = <&tlmm 90 0>;
