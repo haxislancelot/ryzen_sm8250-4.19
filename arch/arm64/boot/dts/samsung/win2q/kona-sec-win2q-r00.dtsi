@@ -18,7 +18,6 @@
 #include "../drivers/eif_8250_common.dtsi"
 #include "../drivers/eif_win2q_common.dtsi"
 #include "../drivers/kona-sec-win2q-display-r00.dtsi"
-#include "../drivers/kona-sec-win2q-mst-r00.dtsi"
 #include "../drivers/battery-data-win2q-common.dtsi"
 #include "../drivers/nfc_win2q_r00.dtsi"
 #include "../drivers/kona-sec-win2q-sensor-r00.dtsi"

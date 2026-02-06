@@ -21,7 +21,6 @@
 #include "../drivers/input_canvas_common.dtsi"
 #include "../drivers/input_c1q_r00.dtsi"
 #include "../drivers/kona-sec-c1q-display-r00.dtsi"
-#include "../drivers/kona-sec-canvasq-mst-r01.dtsi"
 #include "../drivers/eif_picasso_common.dtsi"
 #include "../drivers/eif_c2q_common.dtsi"
 #include "../drivers/camera_sensor_c1q_r02.dtsi"

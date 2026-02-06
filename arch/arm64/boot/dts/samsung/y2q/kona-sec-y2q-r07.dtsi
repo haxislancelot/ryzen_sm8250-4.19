@@ -23,7 +23,6 @@
 #include "../drivers/nfc_y2q_r07.dtsi"
 #include "../drivers/camera_sensor_y2q_r07.dtsi"
 #include "../drivers/fingerprint-sensor_hubbley2_r00.dtsi"
-#include "../drivers/kona-sec-picassoq-common-mst-r04.dtsi"
 #include "../drivers/optics_y2q_r07.dtsi"
 #include "../drivers/abc_picassoq_common.dtsi"
 
