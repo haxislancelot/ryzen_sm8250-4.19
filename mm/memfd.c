@@ -67,7 +67,6 @@ static int memfd_wait_for_pins(struct address_space *mapping)
 	XA_STATE(xas, &mapping->i_pages, 0);
 	struct page *page;
 	int error, scan;
-	int cache_count;
 
 	memfd_tag_pins(&xas);
 

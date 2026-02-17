@@ -168,7 +168,6 @@ void __delete_from_swap_cache(struct page *page, void *shadow)
 	VM_BUG_ON_PAGE(!PageLocked(page), page);
 	VM_BUG_ON_PAGE(!PageSwapCache(page), page);
 	VM_BUG_ON_PAGE(PageWriteback(page), page);
-	VM_BUG_ON(shadow && !radix_tree_exceptional_entry(shadow));
 
 	entry.val = page_private(page);
 	address_space = swap_address_space(entry);
@@ -184,7 +183,7 @@ void __delete_from_swap_cache(struct page *page, void *shadow)
 			continue;
 
 		__radix_tree_replace(&address_space->i_pages,
-				     node, slot, shadow, NULL);
+				     node, slot, shadow);
 		set_page_private(page + i, 0);
 	}
 	ClearPageSwapCache(page);
@@ -289,7 +288,7 @@ void clear_shadow_from_swap_cache(int type, unsigned long begin,
 					 &iter, curr) {
 			item = radix_tree_deref_slot_protected(slot,
 					&address_space->i_pages.xa_lock);
-			if (radix_tree_exceptional_entry(item))
+			if (xa_is_value(item))
 				radix_tree_iter_delete(&address_space->i_pages,
 						       &iter, slot);
 			if (iter.next_index > end)

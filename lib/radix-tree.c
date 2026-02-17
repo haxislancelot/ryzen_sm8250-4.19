@@ -606,6 +606,72 @@ static bool delete_node(struct radix_tree_root *root,
 	return deleted;
 }
 
+
+/**
+ *	__radix_tree_create	-	create a slot in a radix tree
+ *	@root:		radix tree root
+ *	@index:		index key
+ *	@nodep:		returns node
+ *	@slotp:		returns slot
+ *
+ *	Create, if necessary, and return the node and slot for an item
+ *	at position @index in the radix tree @root.
+ *
+ *	Until there is more than one item in the tree, no nodes are
+ *	allocated and @root->xa_head is used as a direct slot instead of
+ *	pointing to a node, in which case *@nodep will be NULL.
+ *
+ *	Returns -ENOMEM, or 0 for success.
+ */
+static int __radix_tree_create(struct radix_tree_root *root,
+		unsigned long index, struct radix_tree_node **nodep,
+		void __rcu ***slotp)
+{
+	struct radix_tree_node *node = NULL, *child;
+	void __rcu **slot = (void __rcu **)&root->xa_head;
+	unsigned long maxindex;
+	unsigned int shift, offset = 0;
+	unsigned long max = index;
+	gfp_t gfp = root_gfp_mask(root);
+
+	shift = radix_tree_load_root(root, &child, &maxindex);
+
+	/* Make sure the tree is high enough.  */
+	if (max > maxindex) {
+		int error = radix_tree_extend(root, gfp, max, shift);
+		if (error < 0)
+			return error;
+		shift = error;
+		child = rcu_dereference_raw(root->xa_head);
+	}
+
+	while (shift > 0) {
+		shift -= RADIX_TREE_MAP_SHIFT;
+		if (child == NULL) {
+			/* Have to add a child node.  */
+			child = radix_tree_node_alloc(gfp, node, root, shift,
+							offset, 0, 0);
+			if (!child)
+				return -ENOMEM;
+			rcu_assign_pointer(*slot, node_to_entry(child));
+			if (node)
+				node->count++;
+		} else if (!radix_tree_is_internal_node(child))
+			break;
+
+		/* Go a level down */
+		node = entry_to_node(child);
+		offset = radix_tree_descend(node, &child, index);
+		slot = &node->slots[offset];
+	}
+
+	if (nodep)
+		*nodep = node;
+	if (slotp)
+		*slotp = slot;
+	return 0;
+}
+
 /*
  * Free any nodes below this node.  The tree is presumed to not need
  * shrinking, and any user data in the tree is presumed to not need a
@@ -653,6 +719,45 @@ static inline int insert_entries(struct radix_tree_node *node,
 	}
 	return 1;
 }
+
+/**
+ *	radix_tree_insert    -    insert into a radix tree
+ *	@root:		radix tree root
+ *	@index:		index key
+ *	@item:		item to insert
+ *
+ *	Insert an item into the radix tree at position @index.
+ */
+int radix_tree_insert(struct radix_tree_root *root, unsigned long index,
+			void *item)
+{
+	struct radix_tree_node *node;
+	void __rcu **slot;
+	int error;
+
+	BUG_ON(radix_tree_is_internal_node(item));
+
+	error = __radix_tree_create(root, index, &node, &slot);
+	if (error)
+		return error;
+
+	error = insert_entries(node, slot, item, false);
+	if (error < 0)
+		return error;
+
+	if (node) {
+		unsigned offset = get_slot_offset(node, slot);
+		BUG_ON(tag_get(node, 0, offset));
+		BUG_ON(tag_get(node, 1, offset));
+		BUG_ON(tag_get(node, 2, offset));
+	} else {
+		BUG_ON(root_tags_get(root));
+	}
+
+	return 0;
+}
+EXPORT_SYMBOL(radix_tree_insert);
+
 
 /**
  *	__radix_tree_lookup	-	lookup an item in a radix tree
