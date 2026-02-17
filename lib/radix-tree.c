@@ -623,8 +623,8 @@ static bool delete_node(struct radix_tree_root *root,
  *	Returns -ENOMEM, or 0 for success.
  */
 static int __radix_tree_create(struct radix_tree_root *root,
-		unsigned long index, unsigned order,
-		struct radix_tree_node **nodep, void __rcu ***slotp)
+		unsigned long index, struct radix_tree_node **nodep,
+		void __rcu ***slotp)
 {
 	struct radix_tree_node *node = NULL, *child;
 	void __rcu **slot = (void __rcu **)&root->xa_head;
@@ -718,44 +718,6 @@ static inline int insert_entries(struct radix_tree_node *node,
 	}
 	return 1;
 }
-
-/**
- *	__radix_tree_insert    -    insert into a radix tree
- *	@root:		radix tree root
- *	@index:		index key
- *	@item:		item to insert
- *
- *	Insert an item into the radix tree at position @index.
- */
-int radix_tree_insert(struct radix_tree_root *root, unsigned long index,
-			void *item)
-{
-	struct radix_tree_node *node;
-	void __rcu **slot;
-	int error;
-
-	BUG_ON(radix_tree_is_internal_node(item));
-
-	error = __radix_tree_create(root, index, &node, &slot);
-	if (error)
-		return error;
-
-	error = insert_entries(node, slot, item, false);
-	if (error < 0)
-		return error;
-
-	if (node) {
-		unsigned offset = get_slot_offset(node, slot);
-		BUG_ON(tag_get(node, 0, offset));
-		BUG_ON(tag_get(node, 1, offset));
-		BUG_ON(tag_get(node, 2, offset));
-	} else {
-		BUG_ON(root_tags_get(root));
-	}
-
-	return 0;
-}
-EXPORT_SYMBOL(radix_tree_insert);
 
 /**
  *	__radix_tree_lookup	-	lookup an item in a radix tree
