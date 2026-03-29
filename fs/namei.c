@@ -4309,7 +4309,7 @@ retry:
 	error = security_path_rmdir(&path, dentry);
 	if (error)
 		goto exit3;
-	error = vfs_rmdir(path.mnt, path.dentry->d_inode, dentry);
+	error = vfs_rmdir(path.dentry->d_inode, dentry);
 #ifdef CONFIG_PROC_DLOG
 	if (!error)
 		dlog_hook_rmdir(dentry, &path);
@@ -4435,7 +4435,7 @@ retry_deleg:
 		error = security_path_unlink(&path, dentry);
 		if (error)
 			goto exit2;
-		error = vfs_unlink(path.mnt, path.dentry->d_inode, dentry, &delegated_inode);
+		error = vfs_unlink(path.dentry->d_inode, dentry, &delegated_inode);
 #ifdef CONFIG_PROC_DLOG
 		if (!error)
 			dlog_hook(dentry, inode, &path);
