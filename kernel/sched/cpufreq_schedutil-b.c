@@ -12,8 +12,6 @@
 
 #include "sched.h"
 
-#define IOWAIT_BOOST_MIN	(SCHED_CAPACITY_SCALE / 8)
-
 struct sugov_tunables {
 	struct gov_attr_set	attr_set;
 	unsigned int		rate_limit_us;
@@ -48,8 +46,6 @@ struct sugov_cpu {
 	struct sugov_policy	*sg_policy;
 	unsigned int		cpu;
 
-	bool			iowait_boost_pending;
-	unsigned int		iowait_boost;
 	u64			last_update;
 
 	unsigned long		util;
@@ -188,128 +184,6 @@ static void sugov_get_util(struct sugov_cpu *sg_cpu)
 	sg_cpu->util = effective_cpu_util(sg_cpu->cpu, cpu_util_cfs(rq), NULL, NULL);
 }
 
-/**
- * sugov_iowait_reset() - Reset the IO boost status of a CPU.
- * @sg_cpu: the sugov data for the CPU to boost
- * @time: the update time from the caller
- * @set_iowait_boost: true if an IO boost has been requested
- *
- * The IO wait boost of a task is disabled after a tick since the last update
- * of a CPU. If a new IO wait boost is requested after more then a tick, then
- * we enable the boost starting from IOWAIT_BOOST_MIN, which improves energy
- * efficiency by ignoring sporadic wakeups from IO.
- */
-static bool sugov_iowait_reset(struct sugov_cpu *sg_cpu, u64 time,
-			       bool set_iowait_boost)
-{
-	s64 delta_ns = time - sg_cpu->last_update;
-
-	/* Reset boost only if a tick has elapsed since last request */
-	if (delta_ns <= TICK_NSEC)
-		return false;
-
-	sg_cpu->iowait_boost = set_iowait_boost ? IOWAIT_BOOST_MIN : 0;
-	sg_cpu->iowait_boost_pending = set_iowait_boost;
-
-	return true;
-}
-
-/**
- * sugov_iowait_boost() - Updates the IO boost status of a CPU.
- * @sg_cpu: the sugov data for the CPU to boost
- * @time: the update time from the caller
- * @flags: SCHED_CPUFREQ_IOWAIT if the task is waking up after an IO wait
- *
- * Each time a task wakes up after an IO operation, the CPU utilization can be
- * boosted to a certain utilization which doubles at each "frequent and
- * successive" wakeup from IO, ranging from IOWAIT_BOOST_MIN to the utilization
- * of the maximum OPP.
- *
- * To keep doubling, an IO boost has to be requested at least once per tick,
- * otherwise we restart from the utilization of the minimum OPP.
- */
-static void sugov_iowait_boost(struct sugov_cpu *sg_cpu, u64 time,
-			       unsigned int flags)
-{
-	bool set_iowait_boost = flags & SCHED_CPUFREQ_IOWAIT;
-
-	/* Reset boost if the CPU appears to have been idle enough */
-	if (sg_cpu->iowait_boost &&
-	    sugov_iowait_reset(sg_cpu, time, set_iowait_boost))
-		return;
-
-	/* Boost only tasks waking up after IO */
-	if (!set_iowait_boost)
-		return;
-
-	/* Ensure boost doubles only one time at each request */
-	if (sg_cpu->iowait_boost_pending)
-		return;
-	sg_cpu->iowait_boost_pending = true;
-
-	/* Double the boost at each request */
-	if (sg_cpu->iowait_boost) {
-		sg_cpu->iowait_boost =
-			min_t(unsigned int, sg_cpu->iowait_boost << 1, SCHED_CAPACITY_SCALE);
-		return;
-	}
-
-	/* First wakeup after IO: start with minimum boost */
-	sg_cpu->iowait_boost = IOWAIT_BOOST_MIN;
-}
-
-/**
- * sugov_iowait_apply() - Apply the IO boost to a CPU.
- * @sg_cpu: the sugov data for the cpu to boost
- * @time: the update time from the caller
- *
- * A CPU running a task which woken up after an IO operation can have its
- * utilization boosted to speed up the completion of those IO operations.
- * The IO boost value is increased each time a task wakes up from IO, in
- * sugov_iowait_apply(), and it's instead decreased by this function,
- * each time an increase has not been requested (!iowait_boost_pending).
- *
- * A CPU which also appears to have been idle for at least one tick has also
- * its IO boost utilization reset.
- *
- * This mechanism is designed to boost high frequently IO waiting tasks, while
- * being more conservative on tasks which does sporadic IO operations.
- */
-static void sugov_iowait_apply(struct sugov_cpu *sg_cpu, u64 time)
-{
-	unsigned long boost;
-
-	/* No boost currently required */
-	if (!sg_cpu->iowait_boost)
-		return;
-
-	/* Reset boost if the CPU appears to have been idle enough */
-	if (sugov_iowait_reset(sg_cpu, time, false))
-		return;
-
-	if (!sg_cpu->iowait_boost_pending) {
-		/*
-		 * No boost pending; reduce the boost value.
-		 */
-		sg_cpu->iowait_boost >>= 1;
-		if (sg_cpu->iowait_boost < IOWAIT_BOOST_MIN) {
-			sg_cpu->iowait_boost = 0;
-			return;
-		}
-	}
-
-	sg_cpu->iowait_boost_pending = false;
-
-	/*
-	 * sg_cpu->util is already in capacity scale; convert iowait_boost
-	 * into the same scale so we can compare.
-	 */
-	boost = (sg_cpu->iowait_boost * sg_cpu->max) >> SCHED_CAPACITY_SHIFT;
-	boost = uclamp_rq_util_with(cpu_rq(sg_cpu->cpu), boost, NULL);
-	if (sg_cpu->util < boost)
-		sg_cpu->util = boost;
-}
-
 #ifdef CONFIG_NO_HZ_COMMON
 static bool sugov_cpu_is_busy(struct sugov_cpu *sg_cpu)
 {
@@ -336,7 +210,6 @@ static inline void ignore_dl_rate_limit(struct sugov_cpu *sg_cpu)
 static inline bool sugov_update_single_common(struct sugov_cpu *sg_cpu,
 					      u64 time, unsigned int flags)
 {
-	sugov_iowait_boost(sg_cpu, time, flags);
 	sg_cpu->last_update = time;
 
 	ignore_dl_rate_limit(sg_cpu);
@@ -345,7 +218,6 @@ static inline bool sugov_update_single_common(struct sugov_cpu *sg_cpu,
 		return false;
 
 	sugov_get_util(sg_cpu);
-	sugov_iowait_apply(sg_cpu, time);
 
 	return true;
 }
@@ -439,7 +311,6 @@ static unsigned int sugov_next_freq_shared(struct sugov_cpu *sg_cpu, u64 time)
 		unsigned long j_util, j_max;
 
 		sugov_get_util(j_sg_cpu);
-		sugov_iowait_apply(j_sg_cpu, time);
 		j_util = j_sg_cpu->util;
 		j_max = j_sg_cpu->max;
 
@@ -461,7 +332,6 @@ sugov_update_shared(struct update_util_data *hook, u64 time, unsigned int flags)
 
 	raw_spin_lock(&sg_policy->update_lock);
 
-	sugov_iowait_boost(sg_cpu, time, flags);
 	sg_cpu->last_update = time;
 
 	ignore_dl_rate_limit(sg_cpu);
@@ -716,7 +586,7 @@ static int sugov_init(struct cpufreq_policy *policy)
 		goto stop_kthread;
 	}
 
-	tunables->rate_limit_us = 5000;
+	tunables->rate_limit_us = 50000;
 
 	policy->governor_data = sg_policy;
 	sg_policy->tunables = tunables;
@@ -770,11 +640,51 @@ static void sugov_exit(struct cpufreq_policy *policy)
 	cpufreq_disable_fast_switch(policy);
 }
 
+static void sugov_set_max_freq(struct cpufreq_policy *policy)
+{
+	struct sugov_policy *sg_policy = policy->governor_data;
+	unsigned int cpu = cpumask_first(policy->cpus);
+	unsigned int max_freq;
+	
+	/*
+	 * I am setting max_freq equal to the frequencies
+	 * that were marked as "// eff" on kona.dtsi.
+	 * Should improve SoT w/o affecting performance
+	 * too much (sm8250 is strong)
+	 */
+
+	if (cpu == 7)                    // prime
+		max_freq = 2553600;
+	else if (cpu >= 4 && cpu <= 6)   // big
+		max_freq = 2246400;
+	else                             // little
+		max_freq = 1708800;
+
+	/* Apply the cap (only if lower than current max) */
+	if (max_freq < policy->cpuinfo.max_freq) {
+		policy->max = max_freq;
+		
+		if (!policy->fast_switch_enabled)
+			mutex_lock(&sg_policy->work_lock);
+
+		cpufreq_policy_apply_limits(policy);
+
+		if (!policy->fast_switch_enabled)
+			mutex_unlock(&sg_policy->work_lock);
+
+		pr_info("schedutil-b: capped policy%d (cpu%d) max_freq to %u kHz\n",
+			policy->cpu, cpu, max_freq);
+	}
+}
+
 static int sugov_start(struct cpufreq_policy *policy)
 {
 	struct sugov_policy *sg_policy = policy->governor_data;
 	void (*uu)(struct update_util_data *data, u64 time, unsigned int flags);
 	unsigned int cpu;
+
+	/* Apply max frequency caps when governor starts */
+	sugov_set_max_freq(policy);
 
 	sg_policy->freq_update_delay_ns	= sg_policy->tunables->rate_limit_us * NSEC_PER_USEC;
 	sg_policy->last_freq_update_time	= 0;
