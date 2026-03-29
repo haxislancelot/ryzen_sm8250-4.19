@@ -197,22 +197,10 @@ static bool sugov_cpu_is_busy(struct sugov_cpu *sg_cpu)
 static inline bool sugov_cpu_is_busy(struct sugov_cpu *sg_cpu) { return false; }
 #endif /* CONFIG_NO_HZ_COMMON */
 
-/*
- * Make sugov_should_update_freq() ignore the rate limit when DL
- * has increased the utilization.
- */
-static inline void ignore_dl_rate_limit(struct sugov_cpu *sg_cpu)
-{
-	if (cpu_bw_dl(cpu_rq(sg_cpu->cpu)) > sg_cpu->bw_dl)
-		sg_cpu->sg_policy->limits_changed = true;
-}
-
 static inline bool sugov_update_single_common(struct sugov_cpu *sg_cpu,
 					      u64 time, unsigned int flags)
 {
 	sg_cpu->last_update = time;
-
-	ignore_dl_rate_limit(sg_cpu);
 
 	if (!sugov_should_update_freq(sg_cpu->sg_policy, time))
 		return false;
@@ -333,8 +321,6 @@ sugov_update_shared(struct update_util_data *hook, u64 time, unsigned int flags)
 	raw_spin_lock(&sg_policy->update_lock);
 
 	sg_cpu->last_update = time;
-
-	ignore_dl_rate_limit(sg_cpu);
 
 	if (sugov_should_update_freq(sg_policy, time)) {
 		next_f = sugov_next_freq_shared(sg_cpu, time);
