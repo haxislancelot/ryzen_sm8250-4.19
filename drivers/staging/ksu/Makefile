@@ -1,129 +1,107 @@
-ksu_obj-y := ksuinit.o
-ksu_obj-y += allowlist.o
-ksu_obj-y += app_profile.o
-ksu_obj-y += apk_sign.o
-ksu_obj-y += sucompat.o
-ksu_obj-y += throne_tracker.o
-ksu_obj-y += setuid_hook.o
-ksu_obj-y += lsm_hook.o
-ksu_obj-y += kernel_compat.o
-ksu_obj-y += kernel_umount.o
-ksu_obj-y += supercalls.o
-ksu_obj-y += feature.o
-ksu_obj-y += ksud.o
-ksu_obj-y += file_wrapper.o
-ksu_obj-y += selinux/selinux.o
-ksu_obj-y += selinux/sepolicy.o
-ksu_obj-y += selinux/rules.o
-ksu_obj-$(CONFIG_KSU_EXTRAS) += extras.o
+# NOTE: unity build. single unit.
 
-kernelsu-objs := $(ksu_obj-y)
+obj-$(CONFIG_KSU) := ksu.o
 
-ccflags-y += -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include
-ccflags-y += -I$(objtree)/security/selinux -include $(srctree)/include/uapi/asm-generic/errno.h
+CFLAGS_ksu.o += -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include
+CFLAGS_ksu.o += -I$(objtree)/security/selinux
 
-obj-$(CONFIG_KSU) += kernelsu.o
+KDIR := $(KDIR)
+MDIR := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
-KSU_VERSION=33333
-KSU_VERSION_TAG=v3.0.0
-KSU_GIT_BRANCH="susfs-rksu-master"
+$(info -- KDIR: $(KDIR))
+$(info -- MDIR: $(MDIR))
 
-ccflags-y += -DKSU_VERSION=$(KSU_VERSION)
-ccflags-y += -DKSU_VERSION_TAG=\"$(KSU_VERSION_TAG)\"
-ccflags-y += -DKSU_BRANCH=\"$(KSU_GIT_BRANCH)\"
+# compliant to last upstream kernel change as of 1875460
+CFLAGS_ksu.o += -DKSU_VERSION=32432
 
-$(info -- KernelSU version: $(KSU_VERSION))
-$(info -- KernelSU tag: $(KSU_VERSION_TAG))
-$(info -- KernelSU branch: $(KSU_GIT_BRANCH))
-
-# SELinux drivers check
-ifeq ($(shell grep -q "current_sid(void)" $(srctree)/security/selinux/include/objsec.h; echo $$?),0)
-ccflags-y += -DKSU_COMPAT_HAS_CURRENT_SID
+ifndef KSU_EXPECTED_SIZE
+KSU_EXPECTED_SIZE := 0x033b
 endif
 
-ifeq ($(shell grep -q "struct selinux_state " $(srctree)/security/selinux/include/security.h; echo $$?),0)
-ccflags-y += -DKSU_COMPAT_HAS_SELINUX_STATE
-endif
-
-# Handle optional backports
-ifeq ($(shell grep -q "strncpy_from_user_nofault" $(srctree)/include/linux/uaccess.h; echo $$?),0)
-ccflags-y += -DKSU_OPTIONAL_STRNCPY
-endif
-
-ifeq ($(shell grep -q "ssize_t kernel_read" $(srctree)/fs/read_write.c; echo $$?),0)
-ccflags-y += -DKSU_OPTIONAL_KERNEL_READ
-endif
-
-ifeq ($(shell grep "ssize_t kernel_write" $(srctree)/fs/read_write.c | grep -q "const void" ; echo $$?),0)
-ccflags-y += -DKSU_OPTIONAL_KERNEL_WRITE
-endif
-
-ifeq ($(shell grep -q "int\s\+path_umount" $(srctree)/fs/namespace.c; echo $$?),0)
-ccflags-y += -DKSU_HAS_PATH_UMOUNT
-endif
-
-ifeq ($(shell grep -q "inode_security_struct\s\+\*selinux_inode" $(srctree)/security/selinux/include/objsec.h; echo $$?),0)
-ccflags-y += -DKSU_OPTIONAL_SELINUX_INODE
-endif
-
-ifeq ($(shell grep -q "task_security_struct\s\+\*selinux_cred" $(srctree)/security/selinux/include/objsec.h; echo $$?),0)
-ccflags-y += -DKSU_OPTIONAL_SELINUX_CRED
-endif
-
-ifeq ($(shell grep -q "atomic_t\s\+filter_count" $(srctree)/include/linux/seccomp.h; echo $$?),0)
-ccflags-y += -DKSU_OPTIONAL_SECCOMP_FILTER_CNT
-endif
-
-# some old kernel backport this, let's check if put_seccomp_filter still exist
-ifneq ($(shell grep -wq "put_seccomp_filter" $(srctree)/kernel/seccomp.c $(srctree)/include/linux/seccomp.h; echo $$?),0)
-ifeq ($(shell grep -wq "seccomp_filter_release" $(srctree)/kernel/seccomp.c $(srctree)/include/linux/seccomp.h; echo $$?),0)
-ccflags-y += -DKSU_OPTIONAL_SECCOMP_FILTER_RELEASE
-endif
-endif
-
-ifeq ($(shell grep -q "anon_inode_getfd_secure" $(srctree)/fs/anon_inodes.c; echo $$?),0)
-ccflags-y += -DKSU_HAS_GETFD_SECURE
-endif
-
-ifeq ($(shell grep -q "security_inode_init_security_anon" $(srctree)/include/linux/security.h; echo $$?),0)
-ccflags-y += -DKSU_COMPAT_HAS_INIT_SEC_ANON
-endif
-
-# Checks Samsung
-ifeq ($(shell grep -q "CONFIG_KDP_CRED" $(srctree)/kernel/cred.c; echo $$?),0)
-ccflags-y += -DSAMSUNG_UH_DRIVER_EXIST
-endif
-ifeq ($(shell grep -q "SEC_SELINUX_PORTING_COMMON" $(srctree)/security/selinux/avc.c; echo $$?),0)
-ccflags-y += -DSAMSUNG_SELINUX_PORTING
-endif
-
-# Custom Signs
-ifdef KSU_EXPECTED_SIZE
-ccflags-y += -DEXPECTED_SIZE=$(KSU_EXPECTED_SIZE)
-$(info -- Custom KernelSU Manager signature size: $(KSU_EXPECTED_SIZE))
-endif
-
-ifdef KSU_EXPECTED_HASH
-ccflags-y += -DEXPECTED_HASH=\"$(KSU_EXPECTED_HASH)\"
-$(info -- Custom KernelSU Manager signature hash: $(KSU_EXPECTED_HASH))
+ifndef KSU_EXPECTED_HASH
+KSU_EXPECTED_HASH := c371061b19d8c7d7d6133c6a9bafe198fa944e50c1b31c9d8daa8d7f1fc2d2d6
 endif
 
 ifdef KSU_MANAGER_PACKAGE
-ccflags-y += -DKSU_MANAGER_PACKAGE=\"$(KSU_MANAGER_PACKAGE)\"
+CFLAGS_ksu.o += -DKSU_MANAGER_PACKAGE=\"$(KSU_MANAGER_PACKAGE)\"
 $(info -- KernelSU Manager package name: $(KSU_MANAGER_PACKAGE))
 endif
 
-$(info -- Supported KernelSU Manager(s): tiann, rsuntk, 5ec1cff, KOWX712, XX, rifsxd, Mambo!)
+$(info -- KernelSU Manager signature size: $(KSU_EXPECTED_SIZE))
+$(info -- KernelSU Manager signature hash: $(KSU_EXPECTED_HASH))
 
-ccflags-y += -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat
-ccflags-y += -Wno-declaration-after-statement -Wno-unused-function -Wno-missing-prototypes
+CFLAGS_ksu.o += -DEXPECTED_SIZE=$(KSU_EXPECTED_SIZE)
+CFLAGS_ksu.o += -DEXPECTED_HASH=\"$(KSU_EXPECTED_HASH)\"
 
-## For susfs stuff ##
-ifeq ($(shell test -e $(srctree)/fs/susfs.c; echo $$?),0)
-$(eval SUSFS_VERSION=$(shell cat $(srctree)/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g'))
-$(info -- KernelSU-SusFS version: $(SUSFS_VERSION))
-else
-$(error -- You have not integrated susfs in your kernel yet. Read: https://gitlab.com/simonpunk/susfs4ksu)
+ifeq ($(shell grep -q " current_sid(void)" $(srctree)/security/selinux/include/objsec.h; echo $$?),0)
+CFLAGS_ksu.o += -DKSU_COMPAT_HAS_CURRENT_SID
 endif
 
-# Keep a new line here !! Because someone may append config
+ifeq ($(shell grep -q "struct selinux_state " $(srctree)/security/selinux/include/security.h; echo $$?),0)
+CFLAGS_ksu.o += -DKSU_COMPAT_HAS_SELINUX_STATE
+endif
+
+ifeq ($(shell grep -q "^DEFINE_RWLOCK(policy_rwlock);" $(srctree)/security/selinux/ss/services.c; echo $$?),0)
+$(info -- KernelSU/compat: exported policy_rwlock found!)
+CFLAGS_ksu.o += -DKSU_COMPAT_HAS_EXPORTED_POLICY_RWLOCK
+endif
+
+ifeq ($(shell grep -q "cpus_ptr;" $(srctree)/include/linux/sched.h; echo $$?),0)
+$(info -- KernelSU/compat: backported cpus_ptr found!)
+CFLAGS_ksu.o += -DKSU_COMPAT_HAS_BACKPORTED_CPUS_PTR
+endif
+
+# UL, look for read_iter on f_op struct
+ifeq ($(shell grep -q "read_iter" $(srctree)/include/linux/fs.h 2>/dev/null; echo $$?),0)
+$(info -- KernelSU/compat: f_op->read_iter found!)
+CFLAGS_ksu.o += -DKSU_HAS_FOP_READ_ITER
+endif
+
+# UL, look for iterate_dir on ‎fs/readdir.c
+ifeq ($(shell grep -q "^int iterate_dir" $(srctree)/fs/readdir.c 2>/dev/null; echo $$?),0)
+$(info -- KernelSU/compat: iterate_dir found!)
+CFLAGS_ksu.o += -DKSU_HAS_ITERATE_DIR
+endif
+
+ifeq ($(shell grep -q "selinux_inode" $(srctree)/security/selinux/include/objsec.h; echo $$?),0)
+$(info -- KernelSU/compat: selinux_inode() found)
+CFLAGS_ksu.o += -DKSU_HAS_SELINUX_INODE
+endif
+
+ifeq ($(shell grep -q "selinux_cred" $(srctree)/security/selinux/include/objsec.h; echo $$?),0)
+$(info -- KernelSU/compat: selinux_cred() found)
+CFLAGS_ksu.o += -DKSU_HAS_SELINUX_CRED
+endif
+
+ifeq ($(shell grep -q "struct type_datum \*\*type_val_to_struct;" $(srctree)/security/selinux/ss/policydb.h; echo $$?),0)
+CFLAGS_ksu.o += -DKSU_TYPE_VAL_TO_STRUCT
+endif
+
+# half-assed-backport from 5.1
+ifeq ($(shell grep -q "struct type_datum \*\*type_val_to_struct_array;" $(srctree)/security/selinux/ss/policydb.h; echo $$?),0)
+CFLAGS_ksu.o += -DKSU_TYPE_VAL_TO_STRUCT_ARRAY
+endif
+
+CFLAGS_ksu.o += -Wno-implicit-function-declaration -Wno-strict-prototypes -Wno-int-conversion -Wno-missing-prototypes
+CFLAGS_ksu.o += -Wno-declaration-after-statement -Wno-unused-function -Wno-format -Wno-incompatible-pointer-types
+CFLAGS_ksu.o += -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast
+
+# so we can see stack use atleast, as we disable all stack safety here
+CFLAGS_ksu.o += $(call cc-option, -Wframe-larger-than=1024)
+
+# to make sure we can use builtins
+CFLAGS_REMOVE_ksu.o += -fno-builtin
+
+ifneq ($(CONFIG_KSU_DEBUG),y)
+# strip, remove tracing / profiling
+# comment out if proper backtrace is needed
+CFLAGS_ksu.o += -g0 -fno-unwind-tables -fno-asynchronous-unwind-tables -fomit-frame-pointer
+CFLAGS_REMOVE_ksu.o = $(CC_FLAGS_FTRACE)
+CFLAGS_REMOVE_ksu.o += -pg
+
+# if cflags can be macro'd, this will be called 'TRUST_ME'
+CFLAGS_ksu.o += -fno-stack-protector -fno-stack-check
+CFLAGS_REMOVE_ksu.o += -fsanitize=shadow-call-stack
+endif # CONFIG_KSU_DEBUG
+
+# Keep a new line here!! Because someone may append config
