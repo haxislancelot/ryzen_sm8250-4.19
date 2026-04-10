@@ -1216,6 +1216,7 @@ config SCHED_AUTOGROUP
 	  desktop applications.  Task group autogeneration is currently based
 	  upon task session.
 
+<<<<<<< HEAD
 config SCHED_TUNE
 	bool "Boosting for CFS tasks (EXPERIMENTAL)"
 	depends on SMP
@@ -1239,6 +1240,8 @@ config SCHED_TUNE
 
 	  If unsure, say N.
 
+=======
+>>>>>>> 752d91f75e5a1 (kernel/sched: Remove SCHED_TUNE remains)
 config UCLAMP_ASSIST
 	bool "UClamp configuration helper"
 	depends on ANDROID && UCLAMP_TASK && UCLAMP_TASK_GROUP
