@@ -67,13 +67,13 @@ static struct asmp_param_struct {
     .scroff_single_core = true,
     .max_cpus_bc = 4, /* Max cpu Big cluster ! */
     .max_cpus_lc = 4, /* Max cpu Little cluster ! */
-    .min_cpus_bc = 2, /* Minimum Big cluster online */
+    .min_cpus_bc = 1, /* Minimum Big cluster online */
     .min_cpus_lc = 1, /* Minimum Little cluster online */
-    .cpufreq_up_bc = 70,
-    .cpufreq_up_lc = 72,
-    .cpufreq_down_bc = 30,
-    .cpufreq_down_lc = 35,
-    .cycle_up = 1,
+    .cpufreq_up_bc = 40,
+    .cpufreq_up_lc = 48,
+    .cpufreq_down_bc = 20,
+    .cpufreq_down_lc = 25,
+    .cycle_up = 0,
     .cycle_down = 1,
 };
 
