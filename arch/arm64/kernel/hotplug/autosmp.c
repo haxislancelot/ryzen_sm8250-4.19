@@ -607,9 +607,11 @@ static int __init asmp_init(void) {
 
     pr_info(ASMP_TAG"initialized\n");
 
+#if 0
     /* Enable AutoSMP by default */
     asmp_enabled = 1;
     asmp_start();
+#endif
 
     return 0;
 }
