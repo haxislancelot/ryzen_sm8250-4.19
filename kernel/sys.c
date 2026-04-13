@@ -1254,7 +1254,8 @@ SYSCALL_DEFINE1(newuname, struct new_utsname __user *, name)
 	if (!strncmp(current->comm, "bpfloader", 9) ||
 	    !strncmp(current->comm, "netbpfload", 10) ||
             !strncmp(current->comm, "uprobestatsbpfload", 18) ||
-	    !strncmp(current->comm, "netd", 4)) {
+	    !strncmp(current->comm, "netd", 4) ||
+	    !strncmp(current->comm, "uprobestats", 11)) {
 	       if (current_uid().val == 0) {
 		       strcpy(tmp.release, "5.10.239");
 		       pr_debug("fake uname: %s/%d release=%s\n",
