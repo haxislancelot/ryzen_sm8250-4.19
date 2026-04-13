@@ -230,40 +230,44 @@ static unsigned int get_next_freq(struct sugov_policy *sg_policy,
 
 static inline unsigned long apply_dvfs_headroom(unsigned long util, int cpu)
 {
-        unsigned long capacity = capacity_orig_of(cpu);
-        unsigned long delta, headroom, future, burst;
+	unsigned long capacity = capacity_orig_of(cpu);
+	unsigned long delta, future, rise, effective, edelta;
 
-        if (util >= capacity)
-                return util;
+	if (util >= capacity)
+		return capacity;
 
-        /* Cut-off dvfs headroom if util is under 6.25% of capacity */
-        if (util < (capacity >> 4))
-                return util;
+	/* filter out noise below 6.25% capacity */
+	if (util < (capacity >> 4))
+		return util;
 
-        /*
-         * Quadratic taper the boosting at the top end as these are expensive
-         * and we don't need that much of a big headroom as we approach max
-         * capacity
-         */
-        delta = capacity - util;
-        headroom = (delta * delta) >> 12;
+	delta = capacity - util;
 
-        /*
-         * If util is rising, add a small extra headroom to get ahead of it.
-         *
-         * Look 2ms into the future; if util is still climbing, boost headroom
-         * slightly (by 12.5%) but cap the addition at 1/8th of remaining
-         * capacity so we don't over-react near the top end.
-         */
-        future = approximate_util_avg(util, 2000); /* 2 ms lookahead */
+	/*
+	 * Short lookahead to detect load direction. approximate_util_avg()
+	 * assumes continuous running so future >= util always; only treat
+	 * it as climbing if the projected increase clears 1/4th of current
+	 * util. Below that threshold fall through to the stable path.
+	 */
+	future = min(approximate_util_avg(util, 2000), capacity);
+	rise   = future - util;
 
-        if (future > util) {
-                burst = future - util;
-                burst += burst >> 3;
-                headroom += min(burst, delta >> 3);
-        }
+	if (rise > (util >> 2)) {
+		/*
+		 * Load is rising; compute headroom from aproximate future
+		 * util so it doesn't lag behind. Extra margin on top
+		 * is capped at 1/16th of remaining capacity to not
+		 * overshoot near max.
+		 */
+		effective = min(future + min(rise >> 4, delta >> 4), capacity);
+		edelta    = capacity - effective;
+		return min(effective + ((edelta * edelta) >> 12), capacity);
+	}
 
-        return min(util + headroom, capacity);
+	/*
+	 * Load is steady or the rise is too small to be meaningful; use a
+	 * half-quadratic from current util.
+	 */
+	return min(util + ((delta * delta) >> 13), capacity);
 }
 
 unsigned long sugov_effective_cpu_perf(int cpu, unsigned long actual,
