@@ -12,8 +12,8 @@ AK3_BRANCH="$DEVICE"
 AK3_DIR="$(pwd)/android/AnyKernel3"
 
 ZIPNAME="not-CI-$(date '+%Y%m%d').zip"
-TC_DIR="$(pwd)/tc/clang-r522817"
-DEFCONFIG="vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/$DEVICE.config"
+TC_DIR="$(pwd)/tc/clang"
+DEFCONFIG="vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/$DEVICE.config vendor/not/full_lto.config vendor/not/no_werror.config"
 
 OUT_DIR="$(pwd)/out"
 BOOT_DIR="$OUT_DIR/arch/arm64/boot"
@@ -24,11 +24,13 @@ if test -z "$(git rev-parse --show-cdup 2>/dev/null)" &&
     ZIPNAME="${ZIPNAME::-4}-$(echo $head | cut -c1-8)-$DEVICE.zip"
 fi
 
+git submodule update --init --recursive
+
 export PATH="$TC_DIR/bin:$PATH"
 
 if ! [ -d "$TC_DIR" ]; then
-    echo -e "${YELLOW}AOSP clang not found! Cloning to $TC_DIR...${NC}"
-    if ! git clone --depth=1 -b 18 https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone "$TC_DIR"; then
+    echo -e "${YELLOW} Clang not found! Cloning to $TC_DIR...${NC}"
+    if ! git clone --depth=1 -b 22-1-3 https://github.com/skye-tachyon/clangbuiltlinux "$TC_DIR"; then
         echo -e "${RED}Cloning failed! Aborting...${NC}"
         exit 1
     fi
