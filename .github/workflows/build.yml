@@ -1,18 +1,27 @@
-name: build not-kernel CI variant r8q
+name: build-kernel (DO NOT RUN ME STANDALONE)
 
 on:
-    push:
-       branches: [ "main" ]
-    workflow_dispatch:
+    workflow_call:
+        inputs:
+          device:
+            type: string
+            required: true
+          device_name:
+            type: string
+            required: true
+        secrets:
+          TELEGRAM_BOT_TOKEN:
+            required: true
+          TELEGRAM_CHAT_ID:
+            required: true
 
 jobs:
   build-kernel:
     runs-on: ubuntu-latest
 
     env:
-      DEVICE: r8q
-      DEVICE_NAME: Galaxy S20 FE
-      KERNEL_NAME: not_kernel
+      DEVICE: ${{ inputs.device }}
+      DEVICE_NAME: ${{ inputs.device_name }}
 
     steps:
       - name: Check Out
@@ -33,7 +42,8 @@ jobs:
 
       - name: Run build script
         run: |
-          ./build-r8q.sh
+          export DEVICE=${{ env.DEVICE }}
+          ./build.sh
 
       - name: Set Build End Time
         run: echo "END_TIME=$(date +%s)" >> $GITHUB_ENV
@@ -48,15 +58,22 @@ jobs:
       - name: Upload to Telegram
         run: |
           gitsha1=$(git rev-parse --short HEAD)
-          printf " Localversion: `cat out/include/config/kernel.release`
-           | Clang version: AOSP Clang 18.0.1
+          zip_file=$(ls not-CI-*.zip 2>/dev/null | head -n 1)
+          if [ -z "$zip_file" ]; then
+            echo "No zip found!"
+            exit 1
+          fi
+          DEVICE_NAME_ESCAPED=$(echo "$DEVICE_NAME" | sed 's/[][_*()~`>#+=|{}.!-]/\\&/g')
+          DEVICE_ESCAPED=$(echo "$DEVICE" | sed 's/[][_*()~`>#+=|{}.!-]/\\&/g')
+          printf "| Localversion: `cat out/include/config/kernel.release`
+           | Clang version: kernel.org LLVM 22.1.3
            | Build Date: `date +'%d %B %Y'`
            | Build commit hash: $gitsha1
-           | KernelSU version: 33333
+           | KernelSU version: 32468 / 3.2.4-15
+           | SusFS version: v2.1.0
            | SELinux: Enforcing" >> buildDetails.txt
           buildDetails="`cat buildDetails.txt`"
-          zip_file=$(ls not-CI-*.zip)
-          msg="*not\\-kernel* CI build for the *Galaxy S20FE \\(r8q\\)*
+          msg="*not\\-kernel* CI build for the *${DEVICE_NAME_ESCAPED} \\(${DEVICE_ESCAPED}\\)*
           * *
           \`\`\`
           $buildDetails

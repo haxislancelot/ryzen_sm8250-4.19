@@ -6,15 +6,14 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-
 # ===== AnyKernel3 =====
 AK3_REPO="https://github.com/skye-tachyon/AnyKernel3"
-AK3_BRANCH="r8q"
+AK3_BRANCH="$DEVICE"
 AK3_DIR="$(pwd)/android/AnyKernel3"
 
 ZIPNAME="not-CI-$(date '+%Y%m%d').zip"
 TC_DIR="$(pwd)/tc/clang-r522817"
-DEFCONFIG="vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/r8q.config"
+DEFCONFIG="vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/$DEVICE.config"
 
 OUT_DIR="$(pwd)/out"
 BOOT_DIR="$OUT_DIR/arch/arm64/boot"
@@ -22,7 +21,7 @@ DTS_DIR="$BOOT_DIR/dts/vendor/qcom"
 
 if test -z "$(git rev-parse --show-cdup 2>/dev/null)" &&
    head=$(git rev-parse --verify HEAD 2>/dev/null); then
-    ZIPNAME="${ZIPNAME::-4}-$(echo $head | cut -c1-8)-r8q.zip"
+    ZIPNAME="${ZIPNAME::-4}-$(echo $head | cut -c1-8)-$DEVICE.zip"
 fi
 
 export PATH="$TC_DIR/bin:$PATH"
@@ -78,7 +77,7 @@ else
 fi
 
 rm -rf AnyKernel3
-echo "[*] Cloning AnyKernel3 for r8q"
+echo "[*] Cloning AnyKernel3 for $DEVICE"
 git clone -q -b "$AK3_BRANCH" "$AK3_REPO" AnyKernel3 || exit 1
 
 echo -e "Preparing zip...\n"
