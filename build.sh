@@ -13,7 +13,7 @@ AK3_DIR="$(pwd)/android/AnyKernel3"
 
 ZIPNAME="not-CI-$(date '+%Y%m%d').zip"
 TC_DIR="$(pwd)/tc/clang"
-DEFCONFIG="vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/$DEVICE.config vendor/not/full_lto.config vendor/not/no_werror.config"
+DEFCONFIG="vendor/kona-not_defconfig vendor/samsung/kona-sec-not.config vendor/samsung/$DEVICE.config vendor/not/no_werror.config"
 
 OUT_DIR="$(pwd)/out"
 BOOT_DIR="$OUT_DIR/arch/arm64/boot"
