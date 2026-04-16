@@ -129,9 +129,39 @@ obj-$(CONFIG_RSEQ) += rseq.o
 $(obj)/configs.o: $(obj)/config_data.h
 
 targets += config_data.gz
-$(obj)/config_data.gz: arch/arm64/configs/r8q-lineage_defconfig FORCE
+ifeq ($(CONFIG_ARCH_KONA), y)
+ifeq ($(CONFIG_SEC_R8Q_PROJECT), y)
+$(obj)/config_data.gz: arch/arm64/configs/kona-sec/r8q_defconfig FORCE
 	$(call if_changed,gzip)
-
+else ifeq ($(CONFIG_SEC_BLOOMXQ_PROJECT), y)
+$(obj)/config_data.gz: arch/arm64/configs/kona-sec/bloomxq_defconfig FORCE
+	$(call if_changed,gzip)
+else ifeq ($(CONFIG_SEC_F2Q_PROJECT), y)
+$(obj)/config_data.gz: arch/arm64/configs/kona-sec/f2q_defconfig FORCE
+	$(call if_changed,gzip)
+else ifeq ($(CONFIG_SEC_GTS7XL_PROJECT), y) 
+$(obj)/config_data.gz: arch/arm64/configs/kona-sec/gts7xl_defconfig FORCE
+	$(call if_changed,gzip)
+else ifeq ($(CONFIG_SEC_GTS7L_PROJECT), y) 
+$(obj)/config_data.gz: arch/arm64/configs/kona-sec/gts7l_defconfig FORCE
+	$(call if_changed,gzip)
+else ifeq ($(CONFIG_SEC_C1Q_PROJECT), y) 
+$(obj)/config_data.gz: arch/arm64/configs/kona-sec/c1q_defconfig FORCE
+	$(call if_changed,gzip)
+else ifeq ($(CONFIG_SEC_C2Q_PROJECT), y)
+$(obj)/config_data.gz: arch/arm64/configs/kona-sec/c2q_defconfig FORCE
+	$(call if_changed,gzip)
+else ifeq ($(CONFIG_SEC_X1Q_PROJECT), y)
+$(obj)/config_data.gz: arch/arm64/configs/kona-sec/x1q_defconfig FORCE
+	$(call if_changed,gzip)
+else ifeq ($(CONFIG_SEC_Y2Q_PROJECT), y)
+$(obj)/config_data.gz: arch/arm64/configs/kona-sec/y2q_defconfig FORCE
+	$(call if_changed,gzip)
+else ifeq ($(CONFIG_SEC_Z3Q_PROJECT), y)
+$(obj)/config_data.gz: arch/arm64/configs/kona-sec/z3q_defconfig FORCE
+	$(call if_changed,gzip)
+endif
+endif # CONFIG_ARCH_KONA
       filechk_ikconfiggz = (echo "static const char kernel_config_data[] __used = MAGIC_START"; cat $< | scripts/bin2c; echo "MAGIC_END;")
 targets += config_data.h
 $(obj)/config_data.h: $(obj)/config_data.gz FORCE
