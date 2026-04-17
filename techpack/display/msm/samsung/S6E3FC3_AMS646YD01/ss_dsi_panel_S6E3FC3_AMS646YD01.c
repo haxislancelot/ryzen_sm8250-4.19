@@ -1065,7 +1065,7 @@ static int ss_vrr_init(struct vrr_info *vrr)
 	mutex_init(&vrr->brr_lock);
 
 	/* Bootloader: FHD@120hz HSl mode */
-	vrr->cur_refresh_rate = vrr->adjusted_refresh_rate = 120;
+	vrr->cur_refresh_rate = vrr->adjusted_refresh_rate = 132;
 	vrr->cur_sot_hs_mode = vrr->adjusted_sot_hs_mode = true;
 	vrr->max_h_active_support_120hs = 1080; /* supports 120hz until FHD 1080 */
 

@@ -1193,6 +1193,24 @@ error:
 	return rc;
 }
 
+#if 1 //#ifdef CONFIG_DSI_MSM_CUSTOM_FRAMERATE
+static unsigned int refresh_rate_cus = 132;
+
+static int __init read_refresh_rate_cmd(char *s)
+{
+	if (s)
+		refresh_rate_cus = simple_strtoul(s, NULL, 0);
+
+	if (refresh_rate_cus > 132)
+		refresh_rate_cus = 132;
+	else if (refresh_rate_cus < 60)
+		refresh_rate_cus = 60;
+
+	return 1;
+}
+__setup("refresh.rate=", read_refresh_rate_cmd);
+#endif
+
 static int dsi_panel_parse_timing(struct dsi_mode_info *mode,
 				  struct dsi_parser_utils *utils)
 {
@@ -1232,6 +1250,10 @@ static int dsi_panel_parse_timing(struct dsi_mode_info *mode,
 		       rc);
 		goto error;
 	}
+
+#if 1 //#ifdef CONFIG_DSI_MSM_CUSTOM_FRAMERATE
+	mode->refresh_rate = refresh_rate_cus;
+#endif
 
 	rc = utils->read_u32(utils->data, "qcom,mdss-dsi-panel-width",
 				  &mode->h_active);

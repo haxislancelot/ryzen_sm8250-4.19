@@ -1332,20 +1332,20 @@
 				qcom,mdss-dsi-panel-height = <2400>;
 
 				qcom,mdss-dsi-h-pulse-width = <84>;
-				qcom,mdss-dsi-h-back-porch = <88>;
-				qcom,mdss-dsi-h-front-porch = <80>;
+				qcom,mdss-dsi-h-back-porch = <96>;
+				qcom,mdss-dsi-h-front-porch = <88>;
 				qcom,mdss-dsi-h-sync-skew = <0>;
 
 				qcom,mdss-dsi-v-pulse-width = <2>;
 				qcom,mdss-dsi-v-back-porch = <2>;
 				qcom,mdss-dsi-v-front-porch = <15>;
 
-				qcom,mdss-dsi-panel-framerate = <120>;
+				qcom,mdss-dsi-panel-framerate = <132>;
 				samsung,mdss-dsi-sot-hs-mode;
 
 				/* transfer time: 48Hz: 20032, 60Hz: 15866, 96Hz: 9616, 120Hz: 7533 */
-				qcom,mdss-mdp-transfer-time-us = <6333>;
-				qcom,mdss-dsi-panel-clockrate = <1108000000>; /* ((1080 * 2400 * 24 * 132.7492367) / 4 ) / 3 ~ 1.9G*/
+				qcom,mdss-mdp-transfer-time-us = <5750>;
+				qcom,mdss-dsi-panel-clockrate = <1218000000>; /* ((1080 * 2400 * 24 * 132.7492367) / 4 ) / 3 ~ 1.9G*/
 				//qcom,mdss-dsi-panel-phy-timings =[00 25 0A 0A 27 24 0A 0A 0A 02 04 00];
 				qcom,mdss-dsi-panel-phy-timings = [00 25 0A 0A 27 24 0A 0A 09 02 04 00 20 0F];
 
