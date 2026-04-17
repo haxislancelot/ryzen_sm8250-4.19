@@ -60,12 +60,15 @@ static unsigned int get_input_boost_freq(struct cpufreq_policy *policy)
 		else
 			freq = CONFIG_INPUT_BOOST_FREQ_PERFP;
 	} else {
-		if (cpumask_test_cpu(policy->cpu, cpu_lp_mask) ||
-		    cpumask_test_cpu(policy->cpu, cpu_perf_mask))
-			freq = 1171200;
-		else
-			freq = 1190400;
+		if (cpumask_test_cpu(policy->cpu, cpu_lp_mask)) {
+			freq = 979200;
+		} else if (cpumask_test_cpu(policy->cpu, cpu_perf_mask)) {
+			freq = 825600;
+	        } else {
+			freq = 960000;
+	        }
 	}
+
 	return min(freq, policy->max);
 }
 

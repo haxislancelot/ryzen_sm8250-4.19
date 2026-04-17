@@ -238,7 +238,7 @@ if CPU_INPUT_BOOST
 
 config INPUT_BOOST_DURATION_MS
 	int "Input boost duration"
-	default "0"
+	default "64"
 	help
 	  Input boost duration in milliseconds.
 
@@ -250,13 +250,13 @@ config WAKE_BOOST_DURATION_MS
 
 config INPUT_BOOST_FREQ_LP
 	int "Low-power cluster boost freq"
-	default "0"
+	default "883200"
 	help
 	  Input boost frequency for the low-power CPU cluster.
 
 config INPUT_BOOST_FREQ_PERF
 	int "Performance cluster boost freq"
-	default "0"
+	default "825600"
 	help
 	  Input boost frequency for the performance CPU cluster.
 
