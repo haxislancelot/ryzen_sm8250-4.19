@@ -89,7 +89,8 @@ AK3_DIR="$(pwd)/android/AnyKernel3"
 ZIPNAME="not-CI-$(date '+%Y%m%d').zip"
 TC_DIR="$(pwd)/tc/clang"
 KERNEL_DEFCONFIG="vendor/kona-not_defconfig"
-DEFCONFIG="$KERNEL_DEFCONFIG vendor/samsung/kona-sec-not.config $PROJECT_CONFIG"
+NOT_DEFCONFIG="vendor/not/droidspace.config" #Additional configs available on vendor/not/
+DEFCONFIG="$KERNEL_DEFCONFIG vendor/samsung/kona-sec-not.config $PROJECT_CONFIG $NOT_DEFCONFIG"
 
 OUT_DIR="$(pwd)/out"
 BOOT_DIR="$OUT_DIR/arch/arm64/boot"
