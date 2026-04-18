@@ -5217,7 +5217,7 @@ unsigned long effective_cpu_util(int cpu, unsigned long util_cfs,
 	unsigned long util, irq, scale;
 	struct rq *rq = cpu_rq(cpu);
 
-	scale = arch_scale_cpu_capacity(cpu);
+	scale = arch_scale_cpu_capacity(NULL, cpu);
 
 	/*
 	 * Early check to see if IRQ/steal time saturates the CPU, can be

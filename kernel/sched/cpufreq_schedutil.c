@@ -444,7 +444,7 @@ static void sugov_update_single_freq(struct update_util_data *hook, u64 time,
 	unsigned long max_cap;
 	unsigned int next_f;
 
-	max_cap = arch_scale_cpu_capacity(sg_cpu->cpu);
+	max_cap = arch_scale_cpu_capacity(NULL, sg_cpu->cpu);
 
 	if (!sugov_update_single_common(sg_cpu, time, max_cap, flags))
 		return;
@@ -484,7 +484,7 @@ static void sugov_update_single_perf(struct update_util_data *hook, u64 time,
 		return;
 	}
 
-	max_cap = arch_scale_cpu_capacity(sg_cpu->cpu);
+	max_cap = arch_scale_cpu_capacity(NULL, sg_cpu->cpu);
 
 	if (!sugov_update_single_common(sg_cpu, time, max_cap, flags))
 		return;
@@ -502,7 +502,7 @@ static unsigned int sugov_next_freq_shared(struct sugov_cpu *sg_cpu, u64 time)
 	unsigned long util = 0, max_cap;
 	unsigned int j;
 
-	max_cap = arch_scale_cpu_capacity(sg_cpu->cpu);
+	max_cap = arch_scale_cpu_capacity(NULL, sg_cpu->cpu);
 
 	for_each_cpu(j, policy->cpus) {
 		struct sugov_cpu *j_sg_cpu = &per_cpu(sugov_cpu, j);

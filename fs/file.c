@@ -698,7 +698,6 @@ int __close_fd(struct files_struct *files, unsigned fd)
 }
 EXPORT_SYMBOL(__close_fd); /* for ksys_close() */
 
-<<<<<<< HEAD
 /**
  * last_fd - return last valid index into fd table
  * @cur_fds: files struct
@@ -807,7 +806,6 @@ int __close_range(unsigned fd, unsigned max_fd, unsigned int flags)
 }
 EXPORT_SYMBOL(__close_fd_get_file);
 
-=======
 /*
  * variant of __close_fd that gets a ref on the file for later fput
  */
@@ -837,7 +835,6 @@ out_unlock:
 	return -ENOENT;
 }
 
->>>>>>> 852853dc32c90 (fs: add __close_fd_get_file)
 void do_close_on_exec(struct files_struct *files)
 {
 	unsigned i;
