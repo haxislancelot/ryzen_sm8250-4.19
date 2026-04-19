@@ -30,7 +30,9 @@ export PATH="$TC_DIR/bin:$PATH"
 
 if ! [ -d "$TC_DIR" ]; then
     echo -e "${YELLOW} Clang not found! Cloning to $TC_DIR...${NC}"
-    if ! git clone --depth=1 -b 22-1-3 https://github.com/skye-tachyon/clangbuiltlinux "$TC_DIR"; then
+    mkdir $TC_DIR
+    if ! curl -L https://github.com/skye-tachyon/clangbuiltlinux/releases/download/22-1-3-rel/clang-22-1-3.tar.gz \
+        | tar -xz -C "$TC_DIR" --strip-components=1; then
         echo -e "${RED}Cloning failed! Aborting...${NC}"
         exit 1
     fi
