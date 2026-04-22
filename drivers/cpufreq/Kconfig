@@ -238,31 +238,31 @@ if CPU_INPUT_BOOST
 
 config INPUT_BOOST_DURATION_MS
 	int "Input boost duration"
-	default "64"
+	default "96"
 	help
 	  Input boost duration in milliseconds.
 
 config WAKE_BOOST_DURATION_MS
 	int "Wake boost duration"
-	default "200"
+	default "300"
 	help
 	  Wake boost duration in milliseconds.
 
 config INPUT_BOOST_FREQ_LP
 	int "Low-power cluster boost freq"
-	default "883200"
+	default "1248000"
 	help
 	  Input boost frequency for the low-power CPU cluster.
 
 config INPUT_BOOST_FREQ_PERF
 	int "Performance cluster boost freq"
-	default "825600"
+	default "1478400"
 	help
 	  Input boost frequency for the performance CPU cluster.
 
 config INPUT_BOOST_FREQ_PERFP
 	int "Prime cluster boost freq"
-	default "0"
+	default "1632000"
 	help
 	  Input boost frequency for the prime CPU cluster.
 
@@ -280,7 +280,7 @@ config MAX_BOOST_FREQ_PERF
 
 config MAX_BOOST_FREQ_PERFP
 	int "Prime cluster max-boost freq"
-	default "2553600"
+	default "0"
 	help
 	  Max-boost frequency for the prime CPU cluster.
 
