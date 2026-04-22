@@ -86,7 +86,7 @@ AK3_REPO="https://github.com/skye-tachyon/AnyKernel3"
 AK3_BRANCH="$MODEL"
 AK3_DIR="$(pwd)/android/AnyKernel3"
 
-ZIPNAME="not-CI-$(date '+%Y%m%d').zip"
+ZIPNAME="ryzen-CI-$(date '+%Y%m%d').zip"
 TC_DIR="$(pwd)/tc/clang"
 KERNEL_DEFCONFIG="vendor/kona-not_defconfig"
 NOT_DEFCONFIG="vendor/not/nethunter.config vendor/not/droidspace.config" #Additional configs available on vendor/not/
